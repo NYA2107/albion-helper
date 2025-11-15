@@ -14,17 +14,17 @@ export interface SidebarItemProps {
 const SidebarItem: FC<SidebarItemProps> = (props) => {
   const { icon, label, linkTo, active } = props;
   return (
-    <div
-      className={cn(
-        "flex items-center p-2 hover:bg-accent cursor-pointer rounded-lg gap-3 hover:text-accent-foreground",
-        active && "text-accent-foreground bg-accent"
-      )}
-    >
-      {icon}
-      <Link className="hidden sm:inline" to={linkTo}>
-        {label}
-      </Link>
-    </div>
+    <Link to={linkTo}>
+      <div
+        className={cn(
+          "flex items-center p-2 hover:bg-accent cursor-pointer rounded-lg gap-3 hover:text-accent-foreground",
+          active && "text-accent-foreground bg-accent"
+        )}
+      >
+        {icon}
+        <span className="hidden sm:inline">{label}</span>
+      </div>
+    </Link>
   );
 };
 export default SidebarItem;
