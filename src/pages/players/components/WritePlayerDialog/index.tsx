@@ -19,20 +19,25 @@ import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { FC } from "react";
+import { useEffect, type FC } from "react";
 import { useForm } from "react-hook-form";
 import { optsTag } from "../../constants/tagList";
 import { PlayerFormSchema, type PlayerType } from "../../schema";
+import { useModalStore } from "@/store/modal";
+import { db } from "@/db";
 
 interface WritePlayerDialogProps {
   open?: boolean;
   onClose?: () => void;
   isEdit?: boolean;
   id?: number;
+  onSubmit?: (data: PlayerType) => void;
 }
 
 const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
-  const { open, onClose, isEdit } = props;
+  const { open, onClose, isEdit, onSubmit } = props;
+  const { modalData } = useModalStore();
+
   const form = useForm<PlayerType>({
     resolver: zodResolver(PlayerFormSchema),
     defaultValues: {
@@ -41,6 +46,27 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
   });
   const { control } = form;
 
+  useEffect(() => {
+    console.log(modalData, "MODAL DATA");
+    const fetchPlayer = (id: number) => {
+      console.log("FETCH PLAYER ID", id);
+      db.players
+        .get(id)
+        .then((player) => {
+          if (player) {
+            form.reset(player);
+          }
+          console.log("FETCH PLAYER", player);
+        })
+        .catch((err) => {
+          console.error("Failed to get player:", err);
+        });
+    };
+    if (isEdit && modalData?.id) {
+      fetchPlayer(modalData.id);
+    }
+  }, [isEdit, modalData, form]);
+
   const handleClose = (open: boolean) => {
     if (open || !onClose) return;
     form.reset();
@@ -48,6 +74,7 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
   };
 
   const handleSubmit = (values: PlayerType) => {
+    onSubmit?.(values);
     console.log(values, "PAYLOAD");
   };
 

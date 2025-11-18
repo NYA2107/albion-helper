@@ -54,7 +54,9 @@ const PlayerCard: FC<PlayerCardProps> = (props) => {
           </div>
           <div className="w-full flex flex-wrap gap-2 mt-4">
             {tags.map((tag) => (
-              <Badge variant="secondary">{tag}</Badge>
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
             ))}
           </div>
           <Separator className="my-3" />
