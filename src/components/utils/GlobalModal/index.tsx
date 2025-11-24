@@ -1,7 +1,7 @@
 import WritePlayerDialog from "@/pages/players/components/WritePlayerDialog";
 import type { PlayerType } from "@/pages/players/schema";
-import { useModalStore } from "@/store/modal";
-import ConfirmationDeleteDialog from "./ui/confirmation-delete-dialog";
+import ConfirmationDeleteDialog from "../../ui/confirmation-delete-dialog";
+import { useModalStore } from "@/store";
 
 const GlobalModal = () => {
   const { modalData, modalType, closeModal, onSubmit } = useModalStore();

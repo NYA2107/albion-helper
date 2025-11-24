@@ -1,20 +1,5 @@
-import type { PlayerType } from "@/pages/players/schema";
+import type { ModalTypeMap } from "@/components/utils/GlobalModal/schema";
 import { create } from "zustand";
-
-type ModalTypeMap = {
-  "create.player": {
-    data: undefined;
-    submitPayload: PlayerType;
-  };
-  "edit.player": {
-    data: { id: number };
-    submitPayload: PlayerType;
-  };
-  "delete.confirmation": {
-    data: undefined;
-    submitPayload: undefined;
-  };
-};
 
 export type ModalType = keyof ModalTypeMap | null;
 

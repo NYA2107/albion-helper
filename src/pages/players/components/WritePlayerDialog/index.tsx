@@ -49,7 +49,6 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
   useEffect(() => {
     console.log(modalData, "MODAL DATA");
     const fetchPlayer = (id: number) => {
-      console.log("FETCH PLAYER ID", id);
       db.players
         .get(id)
         .then((player) => {
