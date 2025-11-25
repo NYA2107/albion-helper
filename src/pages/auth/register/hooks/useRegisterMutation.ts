@@ -1,25 +1,28 @@
-import type { AuthApiError, AuthResponse } from "@supabase/supabase-js";
+import { supabase } from "@/api/supabase";
+import type { AuthError, AuthResponse } from "@supabase/supabase-js";
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import type { RegisterType } from "../schema";
-import { supabase } from "@/api/supabase";
 
 type RegisterMutationOptions = UseMutationOptions<
   AuthResponse,
-  AuthApiError,
-  RegisterType,
-  unknown
+  AuthError,
+  RegisterType
 >;
 
 const useRegisterMutation = (options?: RegisterMutationOptions) => {
-  return useMutation<AuthResponse, AuthApiError, RegisterType>({
-    mutationFn: (loginData) => {
-      return supabase.auth.signUp({
-        email: loginData.email,
-        password: loginData.password,
+  return useMutation({
+    mutationFn: async (credentials) => {
+      const response = await supabase.auth.signUp({
+        email: credentials.email,
+        password: credentials.password,
         options: {
           emailRedirectTo: window.location.origin + "/login",
         },
       });
+      if (response.error) {
+        throw response.error;
+      }
+      return response;
     },
     ...options,
   });

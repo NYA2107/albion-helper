@@ -1,31 +1,17 @@
-import React, { StrictMode, useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
+import { Toaster } from "sonner";
+import useAuthStateChange from "./hooks/useAuthStateChange.ts";
 import "./index.css";
 import router from "./routes/index.tsx";
-import { Toaster } from "sonner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { supabase } from "./api/supabase.ts";
-import { useAuthStore } from "./store/auth.ts";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
+
 export const App = () => {
-  const setSession = useAuthStore((state) => state.setSession);
+  useAuthStateChange();
 
-  useEffect(() => {
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
   return (
     <React.Fragment>
       <QueryClientProvider client={queryClient}>
