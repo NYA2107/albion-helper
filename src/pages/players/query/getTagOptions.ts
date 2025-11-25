@@ -1,19 +1,18 @@
 import { supabase } from "@/api/supabase";
 import { DEFAULT_QUERY_OPTIONS } from "@/constants/defaultQueryOptions";
 import type { PostgrestError } from "@supabase/supabase-js";
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, type UseQueryOptions } from "@tanstack/react-query";
+import type { TagResponseItemType } from "../schema";
 
-export interface TagResponseItemType {
-  id: number;
-  name: string;
-}
-export const getTagOptions = () => {
-  return queryOptions<
-    TagResponseItemType[],
-    PostgrestError,
-    TagResponseItemType[]
-  >({
+export type GetTagOptionsProps = UseQueryOptions<
+  TagResponseItemType[],
+  PostgrestError,
+  TagResponseItemType[]
+>;
+export const getTagOptions = (props?: GetTagOptionsProps) => {
+  return queryOptions({
     ...DEFAULT_QUERY_OPTIONS,
+    ...props,
     queryKey: ["tags"],
     queryFn: async () => {
       const response = await supabase.from("Tag").select("*");

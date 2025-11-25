@@ -1,18 +1,22 @@
 import { supabase } from "@/api/supabase";
 import { queryClient } from "@/main";
 import type { PostgrestError } from "@supabase/supabase-js";
-import { mutationOptions } from "@tanstack/react-query";
+import {
+  mutationOptions,
+  type UseMutationOptions,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 
-export interface DeletePlayerProps {
-  onSuccessCallback?: (data: number) => void;
-  onErrorCallback?: (error: PostgrestError) => void;
-}
+export type DeletePlayerOptionProps = UseMutationOptions<
+  number,
+  PostgrestError,
+  number
+>;
 
-export const deletePlayerOptions = ({
-  onSuccessCallback,
-  onErrorCallback,
-}: DeletePlayerProps) => {
+export const deletePlayerOptions = (props: DeletePlayerOptionProps) => {
+  const { onSuccess: onSuccessCallback, onError: onErrorCallback } = props;
   return mutationOptions<number, PostgrestError, number>({
+    ...props,
     mutationFn: async (id) => {
       //DELETE ALL TAG
       const respDeleteTag = await supabase
@@ -38,12 +42,14 @@ export const deletePlayerOptions = ({
 
       return responsePlayer.data.id;
     },
-    onSuccess: async (id) => {
+    onSuccess: async (id, ...rest) => {
       await queryClient.invalidateQueries({ queryKey: ["players"] });
-      onSuccessCallback?.(id);
+      toast("Player Deleted Successfully");
+      onSuccessCallback?.(id, ...rest);
     },
-    onError: (error) => {
-      onErrorCallback?.(error);
+    onError: (error, ...rest) => {
+      toast(error.message);
+      onErrorCallback?.(error, ...rest);
     },
   });
 };
