@@ -1,19 +1,23 @@
 import { supabase } from "@/api/supabase";
 import { queryClient } from "@/main";
 import type { PostgrestError } from "@supabase/supabase-js";
-import { mutationOptions } from "@tanstack/react-query";
+import {
+  mutationOptions,
+  type UseMutationOptions,
+} from "@tanstack/react-query";
 import type { PlayerType } from "../schema";
+import { toast } from "sonner";
 
-export interface UpdatePlayerProps {
-  onSuccessCallback?: (data: number) => void;
-  onErrorCallback?: (error: PostgrestError) => void;
-}
+export type UpdatePlayerOptionProps = UseMutationOptions<
+  number,
+  PostgrestError,
+  PlayerType
+>;
 
-export const updatePlayerOptions = ({
-  onSuccessCallback,
-  onErrorCallback,
-}: UpdatePlayerProps) => {
+export const updatePlayerOptions = (props: UpdatePlayerOptionProps) => {
+  const { onSuccess: onSuccessCallback, onError: onErrorCallback } = props;
   return mutationOptions<number, PostgrestError, PlayerType>({
+    ...props,
     mutationFn: async (payload) => {
       //UPDATE PLAYER
       const responsePlayer = await supabase
@@ -26,7 +30,7 @@ export const updatePlayerOptions = ({
         .select("id")
         .single();
       if (responsePlayer.error || !responsePlayer.data.id) {
-        throw responsePlayer.error || new Error("Failed to create player");
+        throw responsePlayer.error || new Error("Failed to update player");
       }
 
       //DELETE TAG FROM TABLE PLAYER_TAG
@@ -55,12 +59,14 @@ export const updatePlayerOptions = ({
 
       return responsePlayer.data.id;
     },
-    onSuccess: async (id) => {
+    onSuccess: async (id, ...rest) => {
       await queryClient.invalidateQueries({ queryKey: ["players"] });
-      onSuccessCallback?.(id);
+      toast("Player Updated Successfully");
+      onSuccessCallback?.(id, ...rest);
     },
-    onError: (error) => {
-      onErrorCallback?.(error);
+    onError: (error, ...rest) => {
+      toast(error.message);
+      onErrorCallback?.(error, ...rest);
     },
   });
 };

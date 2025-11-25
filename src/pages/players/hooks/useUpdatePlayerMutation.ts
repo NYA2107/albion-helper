@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   updatePlayerOptions,
-  type UpdatePlayerProps,
+  type UpdatePlayerOptionProps,
 } from "../query/updatePlayerOptions";
 
-const useUpdatePlayerMutation = (props?: UpdatePlayerProps) => {
+const useUpdatePlayerMutation = (props?: UpdatePlayerOptionProps) => {
   return useMutation(updatePlayerOptions({ ...props }));
 };
 

@@ -1,21 +1,26 @@
 import { supabase } from "@/api/supabase";
 import type { PostgrestError, Session } from "@supabase/supabase-js";
-import { mutationOptions } from "@tanstack/react-query";
+import {
+  mutationOptions,
+  type UseMutationOptions,
+} from "@tanstack/react-query";
 import type { PlayerType } from "../schema";
 import { queryClient } from "@/main";
+import { toast } from "sonner";
 
-export interface CreatePlayerProps {
-  session?: Session;
-  onSuccessCallback?: (data: number) => void;
-  onErrorCallback?: (error: PostgrestError) => void;
-}
+export type CreatePlayerOptionsProps = UseMutationOptions<
+  number,
+  PostgrestError,
+  PlayerType
+>;
 
-export const createPlayerOptions = ({
-  session,
-  onSuccessCallback,
-  onErrorCallback,
-}: CreatePlayerProps) => {
+export const createPlayerOptions = (
+  session: Session,
+  props: CreatePlayerOptionsProps
+) => {
+  const { onSuccess: onSuccessCallback, onError: onErrorCallback } = props;
   return mutationOptions<number, PostgrestError, PlayerType>({
+    ...props,
     mutationFn: async (payload) => {
       const responsePlayer = await supabase
         .from("Player")
@@ -46,12 +51,14 @@ export const createPlayerOptions = ({
 
       return responsePlayer.data.id;
     },
-    onSuccess: async (id) => {
+    onSuccess: async (id, ...rest) => {
       await queryClient.invalidateQueries({ queryKey: ["players"] });
-      onSuccessCallback?.(id);
+      toast("Player Created Successfully");
+      onSuccessCallback?.(id, ...rest);
     },
-    onError: (error) => {
-      onErrorCallback?.(error);
+    onError: (error, ...rest) => {
+      toast(error.message);
+      onErrorCallback?.(error, ...rest);
     },
   });
 };

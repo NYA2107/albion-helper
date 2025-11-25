@@ -69,11 +69,8 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
     onClose();
   };
 
-  console.log(form);
-
   const handleSubmit = (values: PlayerType) => {
     onSubmit?.(values);
-    console.log(values, "PAYLOAD");
   };
 
   return (

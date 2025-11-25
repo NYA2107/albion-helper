@@ -1,16 +1,26 @@
 import { supabase } from "@/api/supabase";
 import type { PostgrestError } from "@supabase/supabase-js";
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, type UseQueryOptions } from "@tanstack/react-query";
 import { DEFAULT_QUERY_OPTIONS } from "../../../constants/defaultQueryOptions";
 import type { PlayerResponseItemType } from "../schema";
 
-export const getPlayerByIdOptions = (id: number) => {
-  return queryOptions<
-    PlayerResponseItemType,
-    PostgrestError,
-    PlayerResponseItemType
-  >({
+export interface GetPlayerByIdProps {
+  id: number;
+}
+
+export type GetPlayerOptionsProps = UseQueryOptions<
+  PlayerResponseItemType,
+  PostgrestError,
+  PlayerResponseItemType
+>;
+
+export const getPlayerByIdOptions = (
+  { id }: GetPlayerByIdProps,
+  props?: GetPlayerOptionsProps
+) => {
+  return queryOptions({
     ...DEFAULT_QUERY_OPTIONS,
+    ...props,
     queryKey: ["players", id],
     queryFn: async ({ queryKey }) => {
       const playerId = queryKey[1];

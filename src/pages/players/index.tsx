@@ -17,9 +17,9 @@ import usePlayerPageQuery from "./hooks/usePlayerPageQuery";
 const PlayerPage = () => {
   useUpdateMenuId(MenuIdEnum["menu-player"]);
   const [search, setSearch] = useState<string>("");
-  const debouncedFilter = useDebounce(search, 1000);
+  const debouncedSearch = useDebounce(search, 1000);
   const { createMutation, updateMutation, deleteMutation, players, isPending } =
-    usePlayerPageQuery({ search: debouncedFilter });
+    usePlayerPageQuery({ search: debouncedSearch });
   const { openModal, closeModal } = useModalStore();
 
   const handleClickEdit = (id: number) => {
