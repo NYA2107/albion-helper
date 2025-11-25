@@ -18,13 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, type FC } from "react";
-import { useForm } from "react-hook-form";
-import { optsTag } from "../../constants/tagList";
-import { PlayerFormSchema, type PlayerType } from "../../schema";
 import { useModalStore } from "@/store/modal";
-import { db } from "@/db";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, type FC } from "react";
+import { useForm } from "react-hook-form";
+import useGetPlayerByIdQuery from "../../hooks/useGetPlayerByIdQuery";
+import useGetTagQuery from "../../hooks/useGetTagQuery";
+import { PlayerFormSchema, type PlayerType } from "../../schema";
 
 interface WritePlayerDialogProps {
   open?: boolean;
@@ -37,6 +37,12 @@ interface WritePlayerDialogProps {
 const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
   const { open, onClose, isEdit, onSubmit } = props;
   const { modalData } = useModalStore();
+  const { data: tags } = useGetTagQuery();
+  const { data: player } = useGetPlayerByIdQuery(modalData?.id ?? 0);
+
+  const optsTag = useMemo(() => {
+    return tags?.map((tag) => ({ value: `${tag.id}`, label: tag.name })) || [];
+  }, [tags]);
 
   const form = useForm<PlayerType>({
     resolver: zodResolver(PlayerFormSchema),
@@ -47,30 +53,23 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
   const { control } = form;
 
   useEffect(() => {
-    console.log(modalData, "MODAL DATA");
-    const fetchPlayer = (id: number) => {
-      db.players
-        .get(id)
-        .then((player) => {
-          if (player) {
-            form.reset(player);
-          }
-          console.log("FETCH PLAYER", player);
-        })
-        .catch((err) => {
-          console.error("Failed to get player:", err);
-        });
-    };
-    if (isEdit && modalData?.id) {
-      fetchPlayer(modalData.id);
+    if (isEdit && player) {
+      form.reset({
+        ...player,
+        ...{ tags: player.tags.map((tag) => `${tag.id}`) },
+      });
+    } else {
+      form.reset();
     }
-  }, [isEdit, modalData, form]);
+  }, [isEdit, modalData, form, player]);
 
   const handleClose = (open: boolean) => {
     if (open || !onClose) return;
     form.reset();
     onClose();
   };
+
+  console.log(form);
 
   const handleSubmit = (values: PlayerType) => {
     onSubmit?.(values);
@@ -140,7 +139,9 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
                         <MultiSelect
                           options={optsTag}
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          defaultValue={
+                            field.value?.map((tag) => `${tag}`) || []
+                          }
                         />
                       </FormControl>
                       <FormMessage />

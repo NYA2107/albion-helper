@@ -3,19 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Pencil, Trash } from "lucide-react";
-import type { PlayerType } from "../../schema";
-import type { FC } from "react";
 import moment from "moment";
-
+import type { FC } from "react";
+import type { PlayerResponseItemType } from "../../schema";
 interface PlayerCardProps {
-  data: PlayerType;
+  data: PlayerResponseItemType;
   onClickDelete?: (id: number) => void;
   onClickEdit?: (id: number) => void;
 }
 
 const PlayerCard: FC<PlayerCardProps> = (props) => {
   const {
-    data: { name, tags, description, createdAt, id },
+    data: { id, name, description, created_at: createdAt, tags = [] },
     onClickDelete,
     onClickEdit,
   } = props;
@@ -54,8 +53,8 @@ const PlayerCard: FC<PlayerCardProps> = (props) => {
           </div>
           <div className="w-full flex flex-wrap gap-2 mt-4">
             {tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
+              <Badge key={tag.id} variant="secondary">
+                {tag.name}
               </Badge>
             ))}
           </div>
