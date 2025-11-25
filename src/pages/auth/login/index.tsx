@@ -1,6 +1,5 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { LoginFormSchema, type LoginType } from "./schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -10,29 +9,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router";
-import useLoginMutation from "./hooks/useLoginMutation";
 import { Spinner } from "@/components/ui/spinner";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router";
+import useLoginMutation from "./hooks/useLoginMutation";
+import { LoginFormSchema, type LoginType } from "./schema";
 
 const Login = () => {
-  const navigate = useNavigate();
-
-  const mutation = useLoginMutation({
-    onSuccess: () => {
-      toast.success("Logged in successfully!");
-      navigate("/app/player");
-    },
-    onError: (error) => {
-      toast.error(
-        error.message ||
-          "Something went wrong while logging in. Please try again."
-      );
-    },
-  });
+  const mutation = useLoginMutation();
 
   const form = useForm<LoginType>({
     resolver: zodResolver(LoginFormSchema),
