@@ -1,31 +1,8 @@
-import { supabase } from "@/api/supabase";
-import {
-  AuthError,
-  type AuthTokenResponsePassword,
-} from "@supabase/supabase-js";
-import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
-import type { LoginType } from "../schema";
+import { useMutation } from "@tanstack/react-query";
+import loginOptions, { type LoginOptionsProps } from "../query/loginOptions";
 
-type LoginMutationOptions = UseMutationOptions<
-  AuthTokenResponsePassword,
-  AuthError,
-  LoginType
->;
-
-const useLoginMutation = (options?: LoginMutationOptions) => {
-  return useMutation({
-    mutationFn: async (loginData) => {
-      const response = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      });
-      if (response.error) {
-        throw response.error;
-      }
-      return response;
-    },
-    ...options,
-  });
+const useLoginMutation = (options?: LoginOptionsProps) => {
+  return useMutation(loginOptions({ ...options }));
 };
 
 export default useLoginMutation;
