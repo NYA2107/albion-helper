@@ -21,7 +21,7 @@ const registerOptions = (props: RegisterOptionsProps) => {
         email: credentials.email,
         password: credentials.password,
         options: {
-          emailRedirectTo: window.location.origin + "/login",
+          emailRedirectTo: window.location.origin + "/auth/login",
         },
       });
       if (response.error) {
