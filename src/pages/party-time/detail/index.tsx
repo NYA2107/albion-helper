@@ -21,7 +21,6 @@ import {
   AlarmClockMinus,
   ArrowLeft,
   ChartCandlestick,
-  DoorClosedIcon,
   DoorOpenIcon,
   PlayIcon,
   Plus,
