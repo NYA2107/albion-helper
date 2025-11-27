@@ -11,7 +11,7 @@ import {
 
 interface ConfirmationDeleteDialogProps {
   open?: boolean;
-  onYes?: () => void;
+  onYes?: (data: undefined) => void;
   onNo?: () => void;
 }
 
@@ -34,7 +34,7 @@ const ConfirmationDeleteDialog: FC<ConfirmationDeleteDialogProps> = (props) => {
           <Button variant="default" onClick={() => handleClose(false)}>
             No
           </Button>
-          <Button variant="ghost" onClick={onYes}>
+          <Button variant="ghost" onClick={() => onYes?.(undefined)}>
             Yes
           </Button>
         </DialogFooter>

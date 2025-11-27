@@ -9,29 +9,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router";
-import { toast } from "sonner";
 import useRegisterMutation from "./hooks/useRegisterMutation";
 import { RegisterFormSchema, type RegisterType } from "./schema";
 
 const Register = () => {
-  const mutation = useRegisterMutation({
-    onSuccess: () => {
-      toast.success(
-        "Account created! Please check your email to verify your account."
-      );
-    },
-    onError: (error) => {
-      toast.error(
-        error.message ||
-          "Something went wrong while creating your account. Please try again."
-      );
-    },
-  });
+  const mutation = useRegisterMutation();
 
   const form = useForm<RegisterType>({
     resolver: zodResolver(RegisterFormSchema),
@@ -118,9 +104,9 @@ const Register = () => {
                 className="w-full"
                 form="form-register"
                 type="submit"
+                loading={mutation.isPending}
               >
-                {mutation.isPending && <Spinner />}
-                <span>Create Account</span>
+                Create Account
               </Button>
               <div className="flex justify-between items-center">
                 <p>Already have an account? </p>

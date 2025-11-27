@@ -5,6 +5,7 @@ import {
   type UseMutationOptions,
 } from "@tanstack/react-query";
 import type { RegisterType } from "../schema";
+import { toast } from "sonner";
 
 export type RegisterOptionsProps = UseMutationOptions<
   AuthResponse,
@@ -27,6 +28,19 @@ const registerOptions = (props: RegisterOptionsProps) => {
         throw response.error;
       }
       return response;
+    },
+    onSuccess: (...rest) => {
+      toast.success(
+        "Account created! Please check your email to verify your account."
+      );
+      props.onSuccess?.(...rest);
+    },
+    onError: (error, ...rest) => {
+      toast.error(
+        error.message ||
+          "Something went wrong while creating your account. Please try again."
+      );
+      props.onError?.(error, ...rest);
     },
   });
 };

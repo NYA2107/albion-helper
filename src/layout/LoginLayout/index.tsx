@@ -1,10 +1,12 @@
 import { useAuthStore } from "@/store";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useSearchParams } from "react-router";
 const LoginLayout = () => {
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const email = useAuthStore((state) => state.email);
 
   if (email) {
-    return <Navigate to="/app/player" replace />;
+    return <Navigate to={redirect || "/"} />;
   }
 
   return (

@@ -3,7 +3,8 @@ import LoginLayout from "@/layout/LoginLayout";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import LootSplitPage from "@/pages/loot-split";
-import PartyTimePage from "@/pages/party-time";
+import PartyTimePage from "@/pages/party-time/detail";
+import PartyTimeListPage from "@/pages/party-time/list";
 import PlayerPage from "@/pages/players";
 import { createBrowserRouter } from "react-router";
 
@@ -13,7 +14,7 @@ const router = createBrowserRouter([
     Component: () => <div>Home</div>,
   },
   {
-    path: "/",
+    path: "/auth",
     Component: LoginLayout,
     children: [{ path: "login", Component: Login }],
   },
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
     children: [
       {
         path: "party-time",
+        Component: PartyTimeListPage,
+      },
+      {
+        path: "party-time/:id",
         Component: PartyTimePage,
       },
       {

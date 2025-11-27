@@ -8,6 +8,7 @@ import {
   type UseMutationOptions,
 } from "@tanstack/react-query";
 import type { LoginType } from "../schema";
+import { toast } from "sonner";
 
 export type LoginOptionsProps = UseMutationOptions<
   AuthTokenResponsePassword,
@@ -27,6 +28,17 @@ const registerOptions = (props: LoginOptionsProps) => {
         throw response.error;
       }
       return response;
+    },
+    onSuccess: (...rest) => {
+      toast.success("Logged in successfully!");
+      props.onSuccess?.(...rest);
+    },
+    onError: (error, ...rest) => {
+      toast.error(
+        error.message ||
+          "Something went wrong while logging in. Please try again."
+      );
+      props.onError?.(error, ...rest);
     },
   });
 };

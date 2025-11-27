@@ -1,3 +1,4 @@
+import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
 import useCreatePlayerMutation from "./useCreatePlayerMutation";
 import useDeletePlayerMutation from "./useDeletePlayerMutation";
 import useGetPlayerQuery from "./useGetPlayerQuery";
@@ -9,9 +10,11 @@ interface PlayerPageQueryProps {
 
 const usePlayerPageQuery = (props: PlayerPageQueryProps) => {
   const { search = "" } = props;
-  const createMutation = useCreatePlayerMutation();
-  const deleteMutation = useDeletePlayerMutation();
-  const updateMutation = useUpdatePlayerMutation();
+  const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
+
+  const createMutation = useCreatePlayerMutation(mutationModalDefaultBehavior);
+  const deleteMutation = useDeletePlayerMutation(mutationModalDefaultBehavior);
+  const updateMutation = useUpdatePlayerMutation(mutationModalDefaultBehavior);
   const { data: players, isPending } = useGetPlayerQuery(search);
   return { createMutation, updateMutation, deleteMutation, players, isPending };
 };

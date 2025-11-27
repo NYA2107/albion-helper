@@ -50,7 +50,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="h-dvh w-(--w-sm-sidebar) sm:w-(--w-sidebar) p-3 border-r-[0.5px] border-accent flex flex-col justify-between">
+    <div className="h-dvh w-(--w-sm-sidebar) sm:w-(--w-sidebar) p-3 border-r-[0.5px] border-accent-foreground flex flex-col justify-between">
       <div className="flex flex-col gap-2">
         {menuList.map((v) => {
           return (
