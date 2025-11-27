@@ -1,31 +1,50 @@
 import WritePlayerDialog from "@/pages/players/components/WritePlayerDialog";
-import type { PlayerType } from "@/pages/players/schema";
-import ConfirmationDeleteDialog from "../../ui/confirmation-delete-dialog";
 import { useModalStore } from "@/store";
+import ConfirmationDeleteDialog from "../../ui/confirmation-delete-dialog";
+import WrapperModal from "../WrapperModal";
 
 const GlobalModal = () => {
-  const { modalData, modalType, closeModal, onSubmit } = useModalStore();
+  const { modalType } = useModalStore();
 
   switch (modalType) {
     case "create.player": {
-      const submit = onSubmit as (data: PlayerType) => void;
-      return <WritePlayerDialog open onClose={closeModal} onSubmit={submit} />;
+      return (
+        <WrapperModal<"create.player">>
+          {({ loading, onSubmit, onClose }) => (
+            <WritePlayerDialog
+              loading={loading}
+              open
+              onClose={onClose}
+              onSubmit={onSubmit}
+            />
+          )}
+        </WrapperModal>
+      );
     }
     case "edit.player": {
-      const submit = onSubmit as (data: PlayerType) => void;
       return (
-        <WritePlayerDialog
-          open
-          isEdit
-          id={modalData?.id}
-          onClose={closeModal}
-          onSubmit={submit}
-        />
+        <WrapperModal<"edit.player">>
+          {({ loading, modalData, onSubmit, onClose }) => (
+            <WritePlayerDialog
+              open
+              isEdit
+              loading={loading}
+              id={modalData?.id}
+              onClose={onClose}
+              onSubmit={onSubmit}
+            />
+          )}
+        </WrapperModal>
       );
     }
     case "delete.confirmation": {
-      const submit = onSubmit as () => void;
-      return <ConfirmationDeleteDialog open onNo={closeModal} onYes={submit} />;
+      return (
+        <WrapperModal<"delete.confirmation">>
+          {({ onClose, onSubmit }) => (
+            <ConfirmationDeleteDialog open onNo={onClose} onYes={onSubmit} />
+          )}
+        </WrapperModal>
+      );
     }
     default:
       return null;

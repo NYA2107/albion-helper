@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
-import { useModalStore } from "@/store/modal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, type FC } from "react";
 import { useForm } from "react-hook-form";
@@ -27,18 +26,18 @@ import useGetTagQuery from "../../hooks/useGetTagQuery";
 import { PlayerFormSchema, type PlayerType } from "../../schema";
 
 interface WritePlayerDialogProps {
-  open?: boolean;
-  onClose?: () => void;
-  isEdit?: boolean;
   id?: number;
+  open?: boolean;
+  isEdit?: boolean;
+  loading?: boolean;
+  onClose?: () => void;
   onSubmit?: (data: PlayerType) => void;
 }
 
 const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
-  const { open, onClose, isEdit, onSubmit } = props;
-  const { modalData } = useModalStore();
+  const { open, onClose, isEdit, onSubmit, id, loading } = props;
   const { data: tags } = useGetTagQuery();
-  const { data: player } = useGetPlayerByIdQuery(modalData?.id ?? 0);
+  const { data: player } = useGetPlayerByIdQuery(id ?? 0);
 
   const optsTag = useMemo(() => {
     return tags?.map((tag) => ({ value: `${tag.id}`, label: tag.name })) || [];
@@ -61,7 +60,7 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
     } else {
       form.reset();
     }
-  }, [isEdit, modalData, form, player]);
+  }, [isEdit, form, player]);
 
   const handleClose = (open: boolean) => {
     if (open || !onClose) return;
@@ -151,10 +150,19 @@ const WritePlayerDialog: FC<WritePlayerDialogProps> = (props) => {
         </div>
         <DialogFooter>
           <div>
-            <Button onClick={() => handleClose(false)} variant="ghost">
+            <Button
+              disabled={loading}
+              onClick={() => handleClose(false)}
+              variant="ghost"
+            >
               Cencel
             </Button>
-            <Button form="form-create-player" type="submit">
+            <Button
+              loading={loading}
+              disabled={loading}
+              form="form-create-player"
+              type="submit"
+            >
               Submit
             </Button>
           </div>

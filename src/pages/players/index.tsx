@@ -9,10 +9,18 @@ import useUpdateMenuId from "@/hooks/useUpdateMenuId";
 import { MenuIdEnum } from "@/layout/AppLayout/components/Sidebar";
 import { useModalStore } from "@/store/modal";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Search } from "lucide-react";
+import { Cat, DatabaseIcon, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import PlayerCard from "./components/PlayerCard";
 import usePlayerPageQuery from "./hooks/usePlayerPageQuery";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 const PlayerPage = () => {
   useUpdateMenuId(MenuIdEnum["menu-player"]);
@@ -20,13 +28,13 @@ const PlayerPage = () => {
   const debouncedSearch = useDebounce(search, 1000);
   const { createMutation, updateMutation, deleteMutation, players, isPending } =
     usePlayerPageQuery({ search: debouncedSearch });
-  const { openModal, closeModal } = useModalStore();
+  const { openModal, setLoadingModal } = useModalStore();
 
   const handleClickEdit = (id: number) => {
     openModal("edit.player", { id }, async (data) => {
       if (!data) return;
       updateMutation.mutate(data);
-      closeModal();
+      setLoadingModal(true);
     });
   };
 
@@ -34,13 +42,13 @@ const PlayerPage = () => {
     openModal("create.player", undefined, async (data) => {
       if (!data) return;
       createMutation.mutate(data);
-      closeModal();
+      setLoadingModal(true);
     });
   };
   const handleClickDelete = async (id: number) => {
     openModal("delete.confirmation", undefined, async () => {
       deleteMutation.mutate(id);
-      closeModal();
+      setLoadingModal(true);
     });
   };
 
@@ -49,44 +57,65 @@ const PlayerPage = () => {
   };
 
   return (
-    <div className="flex justify-center py-5">
-      <div className="w-full md:w-[500px] lg:w-[800px]">
-        <h2 className="text-2xl font-bold">Player Management</h2>
-        <p>Create and manage game player</p>
-        <div className="flex gap-4 mt-4">
-          <InputGroup className="rounded-xl">
-            <InputGroupInput
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search..."
-            />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-            <InputGroupAddon align="inline-end">
-              {players?.length} results
-            </InputGroupAddon>
-          </InputGroup>
-          <Button onClick={handleClickCreate} className="cursor-pointer">
-            <Plus /> <span className="hidden sm:inline">Create Player</span>
-          </Button>
+    <div>
+      <div className="flex items-center gap-5">
+        <Cat size={50} />
+        <div>
+          <h2 className="text-2xl font-bold ">Player Management</h2>
+          <p>Create and manage game player</p>
         </div>
-        {isPending ? (
-          <div className="flex justify-center m-4">
-            <Spinner className="w-10 h-10" />
-          </div>
-        ) : (
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-2">
-            {players?.map((pl) => (
-              <PlayerCard
-                key={`player-${pl.id}`}
-                data={pl}
-                onClickDelete={handleClickDelete}
-                onClickEdit={handleClickEdit}
-              />
-            ))}
-          </div>
-        )}
       </div>
+      <div className="flex gap-4 mt-4">
+        <InputGroup className="rounded-xl">
+          <InputGroupInput
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search..."
+          />
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end">
+            {players?.length} results
+          </InputGroupAddon>
+        </InputGroup>
+        <Button onClick={handleClickCreate} className="cursor-pointer">
+          <Plus /> <span className="hidden sm:inline">Create Player</span>
+        </Button>
+      </div>
+      {players && players?.length <= 0 && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <DatabaseIcon />
+            </EmptyMedia>
+            <EmptyTitle>No Player Found</EmptyTitle>
+            <EmptyDescription>
+              Get started by creating a player.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <div className="flex gap-2">
+              <Button onClick={handleClickCreate}>Create Player</Button>
+            </div>
+          </EmptyContent>
+        </Empty>
+      )}
+      {isPending ? (
+        <div className="flex justify-center m-4">
+          <Spinner className="w-10 h-10" />
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
+          {players?.map((pl) => (
+            <PlayerCard
+              key={`player-${pl.id}`}
+              data={pl}
+              onClickDelete={handleClickDelete}
+              onClickEdit={handleClickEdit}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

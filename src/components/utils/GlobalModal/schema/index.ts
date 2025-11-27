@@ -2,8 +2,8 @@ import type { PlayerType } from "@/pages/players/schema";
 
 export type ModalTypeMap = {
   "create.player": {
-    data: undefined;
-    submitPayload: PlayerType;
+    data: undefined; //Modal State
+    submitPayload: PlayerType; //Data Submit
   };
   "edit.player": {
     data: { id: number };

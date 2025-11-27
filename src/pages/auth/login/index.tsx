@@ -9,7 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -105,9 +104,9 @@ const Login = () => {
                 className="w-full"
                 form="form-login"
                 type="submit"
+                loading={mutation.isPending}
               >
-                {mutation.isPending && <Spinner />}
-                <span>Login</span>
+                Login
               </Button>
               <div className="flex justify-between items-center">
                 <p>Don't have an account? </p>

@@ -26,7 +26,7 @@ const PlayerCard: FC<PlayerCardProps> = (props) => {
           <div className="flex justify-between gap-2">
             <div>
               <h3 className="font-bold">{name}</h3>
-              <p className="text-sm">{description}</p>
+              <p className="text-sm text-accent-foreground">{description}</p>
             </div>
             <div className="flex gap-2">
               <Button
