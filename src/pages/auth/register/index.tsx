@@ -110,7 +110,7 @@ const Register = () => {
               </Button>
               <div className="flex justify-between items-center">
                 <p>Already have an account? </p>
-                <Link to="/login">
+                <Link to="/auth/login">
                   <Button variant="link">Sign In Here</Button>
                 </Link>
               </div>
