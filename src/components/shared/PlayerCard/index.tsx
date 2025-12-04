@@ -6,12 +6,12 @@ import { Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import type { FC } from "react";
 import type { PlayerResponseItemType } from "../../../features/players/schema";
-interface PlayerCardProps {
+type PlayerCardProps = {
   data: PlayerResponseItemType;
   onClickDelete?: (id: number) => void;
   onClickEdit?: (id: number) => void;
   hideActions?: boolean;
-}
+};
 
 const PlayerCard: FC<PlayerCardProps> = (props) => {
   const {

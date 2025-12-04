@@ -9,11 +9,11 @@ import {
   DialogTitle,
 } from "./dialog";
 
-interface ConfirmationDeleteDialogProps {
+type ConfirmationDeleteDialogProps = {
   open?: boolean;
   onYes?: (data: undefined) => void;
   onNo?: () => void;
-}
+};
 
 const ConfirmationDeleteDialog: FC<ConfirmationDeleteDialogProps> = (props) => {
   const { onNo, onYes, open } = props;

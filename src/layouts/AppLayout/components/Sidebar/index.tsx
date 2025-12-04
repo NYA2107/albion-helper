@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 

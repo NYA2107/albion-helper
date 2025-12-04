@@ -5,7 +5,7 @@ import {
   type UseMutationOptions,
 } from "@tanstack/react-query";
 import type { PlayerType } from "../schema";
-import { queryClient } from "@/main";
+import { queryClient } from "@/constants/query";
 import { toast } from "sonner";
 
 export type CreatePlayerOptionsProps = UseMutationOptions<

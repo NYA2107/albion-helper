@@ -30,7 +30,7 @@ export const PartySessionFormSchema = z.object({
 export type PartySessionType = z.infer<typeof PartySessionFormSchema>;
 
 export type SessionLogsType = PartySessionType["logs"] extends
-  | (infer U)[]
+  | Array<infer U>
   | undefined
   ? U
   : never;

@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import type { FC } from "react";
 
-interface CreatePartySessionModalProps {
+type CreatePartySessionModalProps = {
   loading?: boolean;
   onClose?: () => void;
   onSubmit?: (data: undefined) => void;
-}
+};
 
 const CreatePartySessionModal: FC<CreatePartySessionModalProps> = (props) => {
   const { onClose } = props;

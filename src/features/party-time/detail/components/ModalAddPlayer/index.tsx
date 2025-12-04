@@ -42,16 +42,16 @@ import {
   XIcon,
 } from "lucide-react";
 import { useCallback, useState, type FC } from "react";
-interface ModalAddPlayerProps {
+type ModalAddPlayerProps = {
   loading?: boolean;
   onClose?: () => void;
   onSubmit?: (payload: undefined) => void;
-}
+};
 
-interface SelectedPlayerType {
+type SelectedPlayerType = {
   id: number;
   name: string;
-}
+};
 
 const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
   const { loading, onClose } = props;

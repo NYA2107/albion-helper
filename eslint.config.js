@@ -21,10 +21,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowExportNames: ["loader"] },
-      ],
+      "@typescript-eslint/array-type": ["error", { default: "array-simple" }],
+      "@typescript-eslint/sort-type-constituents": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-refresh/only-export-components": "off",
     },
   },
   ...pluginQuery.configs["flat/recommended"],

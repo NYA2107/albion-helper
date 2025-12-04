@@ -75,7 +75,7 @@ const multiSelectVariants = cva("m-1 transition-all duration-300 ease-in-out", {
 /**
  * Option interface for MultiSelect component
  */
-interface MultiSelectOption {
+type MultiSelectOption = {
   /** The text to display for the option. */
   label: string;
   /** The unique value associated with the option. */
@@ -93,27 +93,26 @@ interface MultiSelectOption {
     /** Gradient background for badge */
     gradient?: string;
   };
-}
+};
 
 /**
  * Group interface for organizing options
  */
-interface MultiSelectGroup {
+type MultiSelectGroup = {
   /** Group heading */
   heading: string;
   /** Options in this group */
   options: MultiSelectOption[];
-}
+};
 
 /**
  * Props for MultiSelect component
  */
-interface MultiSelectProps
-  extends Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      "animationConfig"
-    >,
-    VariantProps<typeof multiSelectVariants> {
+type MultiSelectProps = Omit<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    "animationConfig"
+  > &
+  VariantProps<typeof multiSelectVariants> & {
   /**
    * An array of option objects or groups to be displayed in the multi-select component.
    */
@@ -276,7 +275,7 @@ interface MultiSelectProps
    * Optional, defaults to false.
    */
   closeOnSelect?: boolean;
-}
+};
 
 /**
  * Imperative methods exposed through ref
