@@ -1,5 +1,5 @@
 import { supabase } from "@/api/supabase";
-import { queryClient } from "@/main";
+import { queryClient } from "@/constants/query";
 import type { PostgrestError } from "@supabase/supabase-js";
 import {
   mutationOptions,

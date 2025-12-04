@@ -4,9 +4,9 @@ import useDeletePlayerMutation from "./useDeletePlayerMutation";
 import useGetPlayerQuery from "./useGetPlayerQuery";
 import useUpdatePlayerMutation from "./useUpdatePlayerMutation";
 
-interface PlayerPageQueryProps {
+type PlayerPageQueryProps = {
   search?: string;
-}
+};
 
 const usePlayerPageQuery = (props: PlayerPageQueryProps) => {
   const { search = "" } = props;

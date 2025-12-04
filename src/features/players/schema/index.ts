@@ -15,7 +15,7 @@ export interface PlayerResponseItemType {
   name: string;
   description?: string;
   created_at: string;
-  tags: { id: number; name: string }[];
+  tags: Array<{ id: number; name: string }>;
 }
 
 export interface TagResponseItemType {

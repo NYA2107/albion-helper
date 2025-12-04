@@ -66,7 +66,7 @@ const dummySession: PartySessionType = {
 };
 
 const generateDummyPlayer = (): PlayerSessionParty[] => {
-  return new Array(40).fill({}).map(() => {
+  return new Array(1000).fill({}).map(() => {
     return {
       id: Math.random(),
       name: "Tisu Paseo",

@@ -25,7 +25,7 @@ import useGetPlayerByIdQuery from "../../hooks/useGetPlayerByIdQuery";
 import useGetTagQuery from "../../hooks/useGetTagQuery";
 import { PlayerFormSchema, type PlayerType } from "../../schema";
 
-interface WritePlayerDialogProps {
+type WritePlayerDialogProps = {
   id?: number;
   open?: boolean;
   isEdit?: boolean;
