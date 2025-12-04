@@ -1,4 +1,4 @@
-import type { ModalTypeMap } from "@/components/utils/GlobalModal/schema";
+import type { ModalTypeMap } from "@/components/global/GlobalModal/schema";
 import { create } from "zustand";
 
 export type ModalType = keyof ModalTypeMap | null;

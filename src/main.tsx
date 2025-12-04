@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import useAuthStateChange from "./hooks/useAuthStateChange.ts";
 import "./index.css";
 import router from "./routes/index.tsx";
+import { ThemeProvider } from "./components/global/theme-provider.tsx";
+import { ModeToggle } from "./components/global/mode-toggle.tsx";
 
 export const queryClient = new QueryClient();
 
@@ -17,6 +19,7 @@ export const App = () => {
       <QueryClientProvider client={queryClient}>
         <Toaster position="top-center" />
         <RouterProvider router={router} />
+        <ModeToggle />
       </QueryClientProvider>
     </React.Fragment>
   );
@@ -24,6 +27,8 @@ export const App = () => {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <App />
+    </ThemeProvider>
   </StrictMode>
 );
