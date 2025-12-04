@@ -1,11 +1,13 @@
-import AppLayout from "@/layout/AppLayout";
-import LoginLayout from "@/layout/LoginLayout";
-import Login from "@/pages/auth/login";
-import Register from "@/pages/auth/register";
-import LootSplitPage from "@/pages/loot-split";
-import PartyTimePage from "@/pages/party-time/detail";
-import PartyTimeListPage from "@/pages/party-time/list";
-import PlayerPage from "@/pages/players";
+import withSidebarMenu from "@/components/hoc/withSideBarMenu";
+import AppLayout from "@/layouts/AppLayout";
+import { MenuIdEnum } from "@/layouts/AppLayout/components/Sidebar";
+import LoginLayout from "@/layouts/LoginLayout";
+import LoginPage from "@/pages/auth/login/LoginPage";
+import RegisterPage from "@/pages/auth/register/RegisterPage";
+import LootSplitListPage from "@/pages/loot-split/LootSplitListPage";
+import PartyTimeDetailPage from "@/pages/party-time/PartyTimeDetailPage";
+import PartyTimeListPage from "@/pages/party-time/PartyTimeListPage";
+import PlayerPage from "@/pages/players/PlayerPage";
 import { createBrowserRouter } from "react-router";
 
 const router = createBrowserRouter([
@@ -16,28 +18,37 @@ const router = createBrowserRouter([
   {
     path: "/auth",
     Component: LoginLayout,
-    children: [{ path: "login", Component: Login }],
+    children: [{ path: "login", Component: LoginPage }],
   },
-  { path: "/register", Component: Register },
+  { path: "/register", Component: RegisterPage },
   {
     path: "/app",
     Component: AppLayout,
     children: [
       {
         path: "party-time",
-        Component: PartyTimeListPage,
+        Component: withSidebarMenu(
+          PartyTimeListPage,
+          MenuIdEnum["menu-party-time"]
+        ),
       },
       {
         path: "party-time/:id",
-        Component: PartyTimePage,
+        Component: withSidebarMenu(
+          PartyTimeDetailPage,
+          MenuIdEnum["menu-party-time"]
+        ),
       },
       {
         path: "loot-split",
-        Component: LootSplitPage,
+        Component: withSidebarMenu(
+          LootSplitListPage,
+          MenuIdEnum["menu-loot-split"]
+        ),
       },
       {
         path: "player",
-        Component: PlayerPage,
+        Component: withSidebarMenu(PlayerPage, MenuIdEnum["menu-player"]),
       },
       {
         path: "discord",

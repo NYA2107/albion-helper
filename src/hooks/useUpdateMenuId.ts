@@ -1,4 +1,4 @@
-import type { MenuIdEnum } from "@/layout/AppLayout/components/Sidebar";
+import type { MenuIdEnum } from "@/layouts/AppLayout/components/Sidebar";
 import { useGlobalState } from "@/store";
 import { useEffect } from "react";
 

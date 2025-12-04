@@ -1,4 +1,4 @@
-import { MenuIdEnum } from "@/layout/AppLayout/components/Sidebar";
+import type { MenuIdEnum } from "@/layouts/AppLayout/components/Sidebar";
 import { create } from "zustand";
 
 export interface GlobalState {
