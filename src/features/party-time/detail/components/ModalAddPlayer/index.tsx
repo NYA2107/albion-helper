@@ -226,7 +226,12 @@ const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
                         }
                         className="cursor-pointer border-accent-foreground"
                       />
-                      <PlayerCard hideActions data={pl} />
+                      <PlayerCard data={pl}>
+                        <PlayerCard.HeaderWrapper>
+                          <PlayerCard.Header />
+                        </PlayerCard.HeaderWrapper>
+                        <PlayerCard.Tags />
+                      </PlayerCard>
                     </div>
                   ))}
                 </div>
