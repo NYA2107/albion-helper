@@ -7,12 +7,31 @@ import {
 import { Component, Plus, Search } from "lucide-react";
 import SessionCard from "./components/SessionCard";
 import { useModalStore } from "@/store";
+import useCreateSessionMutation from "../hooks/useCreateSessionMutation";
+import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
+import useGetSessionQuery from "../hooks/useGetSessionQuery";
+import { Spinner } from "@/components/ui/spinner";
+import { useNavigate } from "react-router";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useState } from "react";
 
 const PartyTimeList = () => {
   const { openModal } = useModalStore();
+  const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
+  const navigate = useNavigate()
+  const [search, setSearch] = useState<string>("")
+  const debouncedSearch = useDebounce(search, 500)
+  const {data, isPending} = useGetSessionQuery(debouncedSearch)
+
+  const {mutate:createMutation} = useCreateSessionMutation(mutationModalDefaultBehavior)
 
   const handleClickCreate = () => {
-    openModal("create.session-party");
+    openModal("create.session-party", undefined, (payload) => {
+      if(!payload) return
+      createMutation(payload, {onSuccess:(id) => {
+        navigate(`${id}`)
+      }})
+    });
   };
 
   return (
@@ -27,7 +46,7 @@ const PartyTimeList = () => {
         </div>
         <div className="flex gap-4 mt-4">
           <InputGroup className="rounded-xl">
-            <InputGroupInput placeholder="Search..." />
+            <InputGroupInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
             <InputGroupAddon>
               <Search />
             </InputGroupAddon>
@@ -37,8 +56,17 @@ const PartyTimeList = () => {
             <Plus /> <span className="hidden sm:inline">Create Session</span>
           </Button>
         </div>
-        <div className="mt-3">
-          <SessionCard />
+        <div className="mt-3 flex flex-col gap-2">
+          {isPending && 
+            <div className="flex justify-center">
+              <Spinner />
+            </div>
+          }
+          {data?.map(session => {
+            return (
+              <SessionCard key={session.id} id={session.id!} name={session.name} description={session.description} state={session.state}  createdAt={session.createdAt}/>
+            )
+          })}
         </div>
       </div>
     </div>

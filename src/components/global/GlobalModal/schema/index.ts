@@ -1,3 +1,4 @@
+import type { PartySessionType } from "@/features/party-time/list/schema";
 import type { PlayerType } from "@/features/players/schema";
 
 export type ModalTypeMap = {
@@ -19,6 +20,6 @@ export type ModalTypeMap = {
   };
   "create.session-party": {
     data: undefined;
-    submitPayload: undefined;
+    submitPayload: PartySessionType;
   };
 };

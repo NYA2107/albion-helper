@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { startClock, stopClock } from "@/hooks/useClock";
+import { useModalStore } from "@/store";
 import {
   ActivitySquare,
   ArrowLeft,
@@ -24,11 +26,12 @@ import {
   Search,
   StopCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Activity, useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router";
+import useGetSessionByIdQuery from "../hooks/useGetSessionByIdQuery";
+import type { PartySessionType } from "../list/schema";
 import { LogText, StatNumberCard, TimeSessionText } from "./components";
 import SessionTabs from "./components/SessionTabs";
-import { useModalStore } from "@/store";
-import type { PartySessionType } from "../list/schema";
 
 export interface PlayerLogsType {
   state: "Active" | "On Break" | "Left" | "Paused";
@@ -93,11 +96,13 @@ const generateDummyPlayer = (): PlayerSessionParty[] => {
 
 const PartyTimeDetail = () => {
   const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
+  const { id:sessionId } = useParams();
   const { openModal } = useModalStore();
   const [session] = useState<PartySessionType>(dummySession);
   const [playerSessionParty] = useState<PlayerSessionParty[]>(
     dummyPlayerSessionParty
   );
+  const {data, isPending} = useGetSessionByIdQuery(parseInt(sessionId!))
 
   const activePlayers = useMemo(
     () => playerSessionParty.filter((player) => player.state === "Active"),
@@ -120,43 +125,51 @@ const PartyTimeDetail = () => {
   const handleClickAddPlayer = () => {
     openModal("add.player");
   };
-
+  
   return (
     <div>
       <div className="flex justify-between items-center gap-3 mb-3 flex-wrap">
-        <div>
-          <Button className="p-0!" variant="link">
-            <ArrowLeft />
-            Back
-          </Button>
-          <h2 className="text-2xl font-bold">Party Time</h2>
-          <p>Manage and track player activity</p>
-        </div>
-        <div className="justify-end w-full lg:w-auto">
-          <div className="flex gap-2 items-center justify-end">
-            <Clock size={20} />
-            <div className="text-xl font-bold text-right ">
-              <TimeSessionText logs={session.logs || []} />
+        {(isPending || !data) && <Spinner />}
+        <Activity mode={(isPending || !data)?"visible":"hidden" }>
+          <Spinner />
+        </Activity>
+        <Activity mode={(!isPending && data)?"visible":"hidden"}>
+          <div>
+            <Link to={`/app/party-time`}>
+              <Button className="p-0!" variant="link">
+                <ArrowLeft />
+                Back
+              </Button>
+            </Link>
+            <h2 className="text-2xl font-bold">{data?.name}</h2>
+            <p>{data?.description}</p>
+          </div>
+          <div className="justify-end w-full lg:w-auto">
+            <div className="flex gap-2 items-center justify-end">
+              <Clock size={20} />
+              <div className="text-xl font-bold text-right ">
+                <TimeSessionText logs={session.logs || []} />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost">
+                <PlayIcon />
+                <span className="hidden sm:inline">Start</span>
+              </Button>
+              <Button variant="destructive-ghost">
+                <StopCircle />
+                <span className="hidden sm:inline">Stop</span>
+              </Button>
+              <Button
+                onClick={handleClickAddPlayer}
+                variant="default"
+                className="cursor-pointer"
+              >
+                <Plus /> <span className="hidden sm:inline">Add Player</span>
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost">
-              <PlayIcon />
-              <span className="hidden sm:inline">Start</span>
-            </Button>
-            <Button variant="destructive-ghost">
-              <StopCircle />
-              <span className="hidden sm:inline">Stop</span>
-            </Button>
-            <Button
-              onClick={handleClickAddPlayer}
-              variant="default"
-              className="cursor-pointer"
-            >
-              <Plus /> <span className="hidden sm:inline">Add Player</span>
-            </Button>
-          </div>
-        </div>
+        </Activity>
       </div>
       <Accordion type="multiple">
         <AccordionItem value="item-1">
