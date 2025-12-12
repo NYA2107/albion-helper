@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlarmClockMinus, DoorOpenIcon, Zap } from "lucide-react";
 import type { PlayerSessionParty } from "../..";
-import React, { useState, useTransition, type FC } from "react";
+import React, { memo, useState, useTransition, type FC } from "react";
 import PlayerSessionCard from "../PlayerSessionCard";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -121,4 +121,4 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
   );
 };
 
-export default SessionTabs;
+export default memo(SessionTabs);

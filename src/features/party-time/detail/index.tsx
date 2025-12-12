@@ -69,7 +69,7 @@ const dummySession: PartySessionType = {
 };
 
 const generateDummyPlayer = (): PlayerSessionParty[] => {
-  return new Array(1000).fill({}).map(() => {
+  return new Array(20).fill({}).map(() => {
     return {
       id: Math.random(),
       name: "Tisu Paseo",
@@ -78,8 +78,8 @@ const generateDummyPlayer = (): PlayerSessionParty[] => {
         Math.random() <= 0.2
           ? "Active"
           : Math.random() <= 0.6
-          ? "On Break"
-          : "Left",
+            ? "On Break"
+            : "Left",
       logs: [
         {
           state: "Paused",
@@ -96,13 +96,13 @@ const generateDummyPlayer = (): PlayerSessionParty[] => {
 
 const PartyTimeDetail = () => {
   const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
-  const { id:sessionId } = useParams();
+  const { id: sessionId } = useParams();
   const { openModal } = useModalStore();
   const [session] = useState<PartySessionType>(dummySession);
   const [playerSessionParty] = useState<PlayerSessionParty[]>(
     dummyPlayerSessionParty
   );
-  const {data, isPending} = useGetSessionByIdQuery(parseInt(sessionId!))
+  const { data, isPending } = useGetSessionByIdQuery(parseInt(sessionId!));
 
   const activePlayers = useMemo(
     () => playerSessionParty.filter((player) => player.state === "Active"),
@@ -125,15 +125,14 @@ const PartyTimeDetail = () => {
   const handleClickAddPlayer = () => {
     openModal("add.player");
   };
-  
+
   return (
     <div>
       <div className="flex justify-between items-center gap-3 mb-3 flex-wrap">
-        {(isPending || !data) && <Spinner />}
-        <Activity mode={(isPending || !data)?"visible":"hidden" }>
+        <Activity mode={isPending || !data ? "visible" : "hidden"}>
           <Spinner />
         </Activity>
-        <Activity mode={(!isPending && data)?"visible":"hidden"}>
+        <Activity mode={!isPending && data ? "visible" : "hidden"}>
           <div>
             <Link to={`/app/party-time`}>
               <Button className="p-0!" variant="link">
@@ -156,7 +155,7 @@ const PartyTimeDetail = () => {
                 <PlayIcon />
                 <span className="hidden sm:inline">Start</span>
               </Button>
-              <Button variant="destructive-ghost">
+              <Button variant="destructive">
                 <StopCircle />
                 <span className="hidden sm:inline">Stop</span>
               </Button>
@@ -211,10 +210,7 @@ const PartyTimeDetail = () => {
         <div className="w-full">
           <div className="flex gap-4 mt-4">
             <InputGroup className="rounded-xl">
-              <InputGroupInput
-                onChange={() => {}}
-                placeholder="Search player..."
-              />
+              <InputGroupInput placeholder="Search player..." />
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>

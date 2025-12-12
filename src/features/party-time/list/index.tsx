@@ -1,36 +1,36 @@
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { Component, Plus, Search } from "lucide-react";
-import SessionCard from "./components/SessionCard";
-import { useModalStore } from "@/store";
-import useCreateSessionMutation from "../hooks/useCreateSessionMutation";
-import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
-import useGetSessionQuery from "../hooks/useGetSessionQuery";
+import SearchInput from "@/components/ui/search-input";
 import { Spinner } from "@/components/ui/spinner";
-import { useNavigate } from "react-router";
+import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
+import { useModalStore } from "@/store";
 import { useDebounce } from "@uidotdev/usehooks";
+import { Component, Plus } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import useCreateSessionMutation from "../hooks/useCreateSessionMutation";
+import useGetSessionQuery from "../hooks/useGetSessionQuery";
+import SessionCard from "./components/SessionCard";
 
 const PartyTimeList = () => {
   const { openModal } = useModalStore();
   const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
-  const navigate = useNavigate()
-  const [search, setSearch] = useState<string>("")
-  const debouncedSearch = useDebounce(search, 500)
-  const {data, isPending} = useGetSessionQuery(debouncedSearch)
+  const navigate = useNavigate();
+  const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search, 500);
+  const { data, isPending } = useGetSessionQuery(debouncedSearch);
 
-  const {mutate:createMutation} = useCreateSessionMutation(mutationModalDefaultBehavior)
+  const { mutate: createMutation } = useCreateSessionMutation(
+    mutationModalDefaultBehavior
+  );
 
   const handleClickCreate = () => {
     openModal("create.session-party", undefined, (payload) => {
-      if(!payload) return
-      createMutation(payload, {onSuccess:(id) => {
-        navigate(`${id}`)
-      }})
+      if (!payload) return;
+      createMutation(payload, {
+        onSuccess: (id) => {
+          navigate(`${id}`);
+        },
+      });
     });
   };
 
@@ -45,27 +45,34 @@ const PartyTimeList = () => {
           </div>
         </div>
         <div className="flex gap-4 mt-4">
-          <InputGroup className="rounded-xl">
-            <InputGroupInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-            <InputGroupAddon align="inline-end">2 results</InputGroupAddon>
-          </InputGroup>
+          <SearchInput
+            inputProps={{
+              placeholder: "Search party sessions...",
+              onChange: (e) => setSearch(e.target.value),
+            }}
+            totalResults={data?.length}
+          />
           <Button onClick={handleClickCreate} className="cursor-pointer">
             <Plus /> <span className="hidden sm:inline">Create Session</span>
           </Button>
         </div>
         <div className="mt-3 flex flex-col gap-2">
-          {isPending && 
+          {isPending && (
             <div className="flex justify-center">
               <Spinner />
             </div>
-          }
-          {data?.map(session => {
+          )}
+          {data?.map((session) => {
             return (
-              <SessionCard key={session.id} id={session.id!} name={session.name} description={session.description} state={session.state}  createdAt={session.createdAt}/>
-            )
+              <SessionCard
+                key={session.id}
+                id={session.id!}
+                name={session.name}
+                description={session.description}
+                state={session.state}
+                createdAt={session.createdAt}
+              />
+            );
           })}
         </div>
       </div>
