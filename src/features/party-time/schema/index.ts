@@ -1,7 +1,9 @@
+import type { PlayerType } from "@/features/players/schema";
 import z from "zod";
 
 export const PartySessionFormSchema = z.object({
   id: z.number().optional(),
+  user_id: z.string().optional(),
   name: z.string().min(2),
   state: z
     .union([z.literal("Active"), z.literal("Paused"), z.literal("Stopped")])
@@ -34,3 +36,20 @@ export type SessionLogsType = PartySessionType["logs"] extends
   | undefined
   ? U
   : never;
+
+export interface PlayerLogsType {
+  state: "Active" | "On Break" | "Left" | "Paused";
+  timeStamp: number;
+}
+
+export const PlayerSessionFormSchema = z.object({
+  player_id: z.number(),
+  party_session_id: z.number(),
+  state: z.custom<PlayerLogsType["state"]>(),
+  logs: z.array(z.custom<PlayerLogsType>()),
+});
+
+export type PlayerSessionFormType = z.infer<typeof PlayerSessionFormSchema>;
+export type PlayerSessionType = Omit<PlayerSessionFormType, "player_id"> & {
+  player_id: PlayerType;
+};

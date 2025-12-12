@@ -1,14 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlarmClockMinus, DoorOpenIcon, Zap } from "lucide-react";
-import type { PlayerSessionParty } from "../..";
 import React, { memo, useState, useTransition, type FC } from "react";
 import PlayerSessionCard from "../PlayerSessionCard";
 import { Spinner } from "@/components/ui/spinner";
+import type { PlayerSessionType } from "@/features/party-time/schema";
 
 type SessionTabsProps = {
-  activePlayers: PlayerSessionParty[];
-  breakPlayers: PlayerSessionParty[];
-  leftPlayers: PlayerSessionParty[];
+  activePlayers: PlayerSessionType[];
+  breakPlayers: PlayerSessionType[];
+  leftPlayers: PlayerSessionType[];
 };
 
 const SessionTabs: FC<SessionTabsProps> = (props) => {
@@ -38,7 +38,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="active"
         >
           <Zap />
-          Active
+          Active ({activePlayers.length})
         </TabsTrigger>
         <TabsTrigger
           onClick={() => {
@@ -48,7 +48,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="break"
         >
           <AlarmClockMinus />
-          On Break
+          On Break ({breakPlayers.length})
         </TabsTrigger>
         <TabsTrigger
           onClick={() => {
@@ -58,7 +58,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="left"
         >
           <DoorOpenIcon />
-          Left
+          Left ({leftPlayers.length})
         </TabsTrigger>
       </TabsList>
       {isPending ? (
@@ -72,10 +72,10 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
               {activePlayers.map((v) => {
                 return (
                   <PlayerSessionCard
-                    key={v.id}
-                    id={v.id}
-                    name={v.name}
-                    description={v.description}
+                    key={v.player_id.id}
+                    id={v.player_id.id}
+                    name={v.player_id.name}
+                    description={v.player_id.description}
                     type="Active"
                     logs={v.logs}
                   />
@@ -88,10 +88,10 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
               {breakPlayers.map((v) => {
                 return (
                   <PlayerSessionCard
-                    key={v.id}
-                    id={v.id}
-                    name={v.name}
-                    description={v.description}
+                    key={v.player_id.id}
+                    id={v.player_id.id}
+                    name={v.player_id.name}
+                    description={v.player_id.description}
                     type="On Break"
                     logs={v.logs}
                   />
@@ -104,10 +104,10 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
               {leftPlayers.map((v) => {
                 return (
                   <PlayerSessionCard
-                    key={v.id}
-                    id={v.id}
-                    name={v.name}
-                    description={v.description}
+                    key={v.player_id.id}
+                    id={v.player_id.id}
+                    name={v.player_id.name}
+                    description={v.player_id.description}
                     type="Left"
                     logs={v.logs}
                   />

@@ -24,14 +24,18 @@ const PartyTimeList = () => {
   );
 
   const handleClickCreate = () => {
-    openModal("create.session-party", undefined, (payload) => {
-      if (!payload) return;
-      createMutation(payload, {
-        onSuccess: (id) => {
-          navigate(`${id}`);
-        },
-      });
-    });
+    openModal<"create.session-party">(
+      "create.session-party",
+      undefined,
+      (payload) => {
+        if (!payload) return;
+        createMutation(payload, {
+          onSuccess: (id) => {
+            navigate(`${id}`);
+          },
+        });
+      }
+    );
   };
 
   return (

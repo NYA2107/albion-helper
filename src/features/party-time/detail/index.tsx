@@ -21,91 +21,85 @@ import {
   ArrowLeft,
   ChartCandlestick,
   Clock,
+  PauseIcon,
   PlayIcon,
   Plus,
   Search,
   StopCircle,
 } from "lucide-react";
-import { Activity, useEffect, useMemo, useState } from "react";
+import React, { Activity, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
+import useGetPlayerSessionQuery from "../hooks/useGetPlayerSessionQuery";
 import useGetSessionByIdQuery from "../hooks/useGetSessionByIdQuery";
-import type { PartySessionType } from "../list/schema";
 import { LogText, StatNumberCard, TimeSessionText } from "./components";
 import SessionTabs from "./components/SessionTabs";
+import type {
+  PlayerLogsType,
+  PlayerSessionFormType,
+  PlayerSessionType,
+  SessionLogsType,
+} from "../schema";
+import moment from "moment";
+import useUpdateSessionMutation from "../hooks/useUpdateSessionMutation";
+import useUpsertPlayerSessionMutation from "../hooks/useUpsertPlayerSessionMutation";
 
-export interface PlayerLogsType {
-  state: "Active" | "On Break" | "Left" | "Paused";
-  timeStamp: number;
-}
+// export interface PlayerSessionParty {
+//   id: number;
+//   name: string;
+//   description: string;
+//   state: "Active" | "On Break" | "Left";
+//   logs: PlayerLogsType[];
+// }
 
-export interface PlayerSessionParty {
-  id: number;
-  name: string;
-  description: string;
-  state: "Active" | "On Break" | "Left";
-  logs: PlayerLogsType[];
-}
-
-const dummySession: PartySessionType = {
-  id: 1,
-  name: "Session Name",
-  state: "Active",
-  logs: [
-    {
-      id: 1,
-      name: "Session",
-      type: "Session",
-      state: "Paused",
-      timeStamp: 1764579029704,
-    },
-    {
-      id: 2,
-      name: "Session",
-      type: "Session",
-      state: "Active",
-      timeStamp: 1764579029800,
-    },
-  ],
-};
-
-const generateDummyPlayer = (): PlayerSessionParty[] => {
-  return new Array(20).fill({}).map(() => {
-    return {
-      id: Math.random(),
-      name: "Tisu Paseo",
-      description: "This is description of the player",
-      state:
-        Math.random() <= 0.2
-          ? "Active"
-          : Math.random() <= 0.6
-            ? "On Break"
-            : "Left",
-      logs: [
-        {
-          state: "Paused",
-          timeStamp: 1764566114971,
-        },
-        {
-          state: "Active",
-          timeStamp: 1764566122964,
-        },
-      ],
-    };
-  });
-};
+// const generateDummyPlayer = (): PlayerSessionParty[] => {
+//   return new Array(20).fill({}).map(() => {
+//     return {
+//       id: Math.random(),
+//       name: "Tisu Paseo",
+//       description: "This is description of the player",
+//       state:
+//         Math.random() <= 0.2
+//           ? "Active"
+//           : Math.random() <= 0.6
+//             ? "On Break"
+//             : "Left",
+//       logs: [
+//         {
+//           state: "Paused",
+//           timeStamp: 1764566114971,
+//         },
+//         {
+//           state: "Active",
+//           timeStamp: 1764566122964,
+//         },
+//       ],
+//     };
+//   });
+// };
 
 const PartyTimeDetail = () => {
-  const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
+  // const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
   const { id: sessionId } = useParams();
   const { openModal } = useModalStore();
-  const [session] = useState<PartySessionType>(dummySession);
-  const [playerSessionParty] = useState<PlayerSessionParty[]>(
-    dummyPlayerSessionParty
-  );
+  const [playerSessionParty, setPlayerSessionParty] = useState<
+    PlayerSessionType[]
+  >([]);
   const { data, isPending } = useGetSessionByIdQuery(parseInt(sessionId!));
+  const { data: player } = useGetPlayerSessionQuery(parseInt(sessionId!));
+  const { mutate: updateSessionMutation } = useUpdateSessionMutation();
+  const { mutate: upsertPlayerSessionMutation } =
+    useUpsertPlayerSessionMutation();
+
+  useEffect(() => {
+    if (!player) return;
+    setPlayerSessionParty(player);
+  }, [player]);
 
   const activePlayers = useMemo(
-    () => playerSessionParty.filter((player) => player.state === "Active"),
+    () =>
+      playerSessionParty.filter(
+        (player) => player.state === "Active" || player.state === "Paused"
+      ),
     [playerSessionParty]
   );
   const breakPlayers = useMemo(
@@ -123,7 +117,81 @@ const PartyTimeDetail = () => {
   }, []);
 
   const handleClickAddPlayer = () => {
-    openModal("add.player");
+    openModal<"add.player">(
+      "add.player",
+      { sessionId: parseInt(sessionId!) },
+      (selectedPlayer) => {
+        const payloadPlayerSession: PlayerSessionFormType[] =
+          selectedPlayer.map((playerId) => {
+            const logs: PlayerLogsType[] =
+              data?.state === "Active"
+                ? [
+                    {
+                      state: "Paused",
+                      timeStamp: moment().valueOf(),
+                    },
+                    {
+                      state: "Active",
+                      timeStamp: moment().valueOf(),
+                    },
+                  ]
+                : [
+                    {
+                      state: "Paused",
+                      timeStamp: moment().valueOf(),
+                    },
+                  ];
+            return {
+              player_id: playerId,
+              logs: logs,
+              state: data?.state === "Active" ? "Active" : "Paused",
+              party_session_id: parseInt(sessionId!),
+            };
+          });
+        upsertPlayerSessionMutation(payloadPlayerSession);
+        console.log(payloadPlayerSession);
+      }
+    );
+  };
+
+  const handleStart = () => {
+    if (!data?.logs) return;
+    const timeStampNow = moment().valueOf();
+    const payloadSessionLog: SessionLogsType = {
+      id: Math.random(),
+      name: "Session",
+      type: "Session",
+      state: "Active",
+      timeStamp: timeStampNow,
+    };
+    updateSessionMutation(
+      {
+        id: parseInt(sessionId!),
+        logs: [...data.logs, ...[payloadSessionLog]],
+        state: "Active",
+      },
+      {
+        onSuccess: () => {
+          const payload: Partial<PlayerSessionFormType[]> = [];
+          activePlayers.map((v) => {
+            if (!v.player_id?.id) return v;
+
+            const addedLog: PlayerLogsType = {
+              state: "Active",
+              timeStamp: timeStampNow,
+            };
+            payload.push({
+              player_id: v.player_id.id,
+              party_session_id: parseInt(sessionId!),
+              state: "Active",
+              logs: [...v.logs, ...[addedLog]],
+            });
+            return v;
+          });
+          upsertPlayerSessionMutation(payload);
+        },
+      }
+    );
   };
 
   return (
@@ -147,25 +215,38 @@ const PartyTimeDetail = () => {
             <div className="flex gap-2 items-center justify-end">
               <Clock size={20} />
               <div className="text-xl font-bold text-right ">
-                <TimeSessionText logs={session.logs || []} />
+                <TimeSessionText logs={data?.logs || []} />
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="ghost">
-                <PlayIcon />
-                <span className="hidden sm:inline">Start</span>
-              </Button>
-              <Button variant="destructive">
-                <StopCircle />
-                <span className="hidden sm:inline">Stop</span>
-              </Button>
-              <Button
-                onClick={handleClickAddPlayer}
-                variant="default"
-                className="cursor-pointer"
-              >
-                <Plus /> <span className="hidden sm:inline">Add Player</span>
-              </Button>
+              {data?.state !== "Stopped" && (
+                <>
+                  {data?.state === "Paused" && (
+                    <Button onClick={handleStart} variant="ghost">
+                      <PlayIcon />
+                      <span className="hidden sm:inline">Start</span>
+                    </Button>
+                  )}
+                  {data?.state === "Active" && (
+                    <Button variant="ghost">
+                      <PauseIcon />
+                      <span className="hidden sm:inline">Pause</span>
+                    </Button>
+                  )}
+                  <Button variant="destructive">
+                    <StopCircle />
+                    <span className="hidden sm:inline">Stop</span>
+                  </Button>
+                  <Button
+                    onClick={handleClickAddPlayer}
+                    variant="default"
+                    className="cursor-pointer"
+                  >
+                    <Plus />{" "}
+                    <span className="hidden sm:inline">Add Player</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </Activity>
@@ -198,7 +279,9 @@ const PartyTimeDetail = () => {
                 <h3 className="font-bold p-0 m-0!">Activity Logs</h3>
                 <Separator className="mt-2" />
                 <ScrollArea className="w-full h-[100px] mt-3">
-                  <LogText />
+                  {data?.logs?.map((log) => {
+                    return <LogText key={log.id} log={log} />;
+                  })}
                 </ScrollArea>
               </CardContent>
             </Card>

@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { AlarmClockMinus, Clock, DoorOpen, Zap } from "lucide-react";
 import moment from "moment";
 import { memo, type FC } from "react";
-import type { PlayerLogsType } from "../..";
 import TimerPlayerSessionText from "../TimePlayerSessionText";
+import type { PlayerLogsType } from "@/features/party-time/schema";
 
 export interface PlayerSessionCardProps {
   type: "Active" | "On Break" | "Left";

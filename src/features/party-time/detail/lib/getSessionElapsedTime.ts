@@ -1,4 +1,4 @@
-import type { SessionLogsType } from "../../list/schema";
+import type { SessionLogsType } from "../../schema";
 
 const getSessionElapsedTime = (logs: SessionLogsType[], now: number) => {
   let elapsedTime = 0;

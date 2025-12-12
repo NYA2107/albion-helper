@@ -5,19 +5,19 @@ import { Separator } from "@/components/ui/separator";
 import { CalculatorIcon, EyeIcon } from "lucide-react";
 import moment from "moment";
 import { Link } from "react-router";
-import type { PartySessionType } from "../../schema";
+import type { PartySessionType } from "../../../schema";
 import type { FC } from "react";
 
 type SessionCardPropsType = {
-  id:number,
-  name:string,
-  description?:string,
-  state?:PartySessionType["state"],
-  createdAt?:string
-}
+  id: number;
+  name: string;
+  description?: string;
+  state?: PartySessionType["state"];
+  createdAt?: string;
+};
 
-const SessionCard:FC<SessionCardPropsType> = (props) => {
-  const {id, name, description, state, createdAt} = props
+const SessionCard: FC<SessionCardPropsType> = (props) => {
+  const { id, name, description, state, createdAt } = props;
   return (
     <Card>
       <CardContent>
@@ -26,9 +26,7 @@ const SessionCard:FC<SessionCardPropsType> = (props) => {
             <div className="grid grid-cols-1 gap-1">
               <h2 className="text-lg font-bold">{name}</h2>
               <Separator className="inline sm:hidden" />
-              <p className="text-accent-foreground">
-                {description}
-              </p>
+              <p className="text-accent-foreground">{description}</p>
             </div>
 
             <div className="flex flex-row sm:flex-col items-center sm:items-end mt-3 sm:mt-0 gap-2 sm:gap-0">

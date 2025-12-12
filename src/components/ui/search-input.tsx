@@ -15,7 +15,7 @@ const SearchInput: FC<SearchInputProps> = (props) => {
       <InputGroupAddon>
         <Search />
       </InputGroupAddon>
-      {totalResults && (
+      {!!totalResults && totalResults > 0 && (
         <InputGroupAddon align="inline-end">
           {totalResults} results
         </InputGroupAddon>

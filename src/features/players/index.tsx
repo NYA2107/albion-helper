@@ -24,7 +24,7 @@ const Player = () => {
   const { openModal, setLoadingModal } = useModalStore();
 
   const handleClickEdit = (id: number) => {
-    openModal("edit.player", { id }, async (data) => {
+    openModal<"edit.player">("edit.player", { id }, async (data) => {
       if (!data) return;
       updateMutation.mutate(data);
       setLoadingModal(true);
@@ -32,7 +32,7 @@ const Player = () => {
   };
 
   const handleClickCreate = () => {
-    openModal("create.player", undefined, async (data) => {
+    openModal<"create.player">("create.player", undefined, async (data) => {
       if (!data) return;
       createMutation.mutate(data);
       setLoadingModal(true);
