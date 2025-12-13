@@ -20,6 +20,7 @@ type SessionTabsProps = {
   leftPlayers: PlayerSessionType[];
   onClickChangeState?: (id: number, state: PlayerLogsType["state"]) => void;
   loading?: boolean;
+  disabled?: boolean;
   defaultActive?: string;
 };
 
@@ -31,6 +32,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
     onClickChangeState,
     loading,
     defaultActive,
+    disabled,
   } = props;
   const [activeTab, setActiveTab] = useState<string>(defaultActive || "Active");
   const [isPending, startTransition] = useTransition();
@@ -61,7 +63,8 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="active"
         >
           <Zap />
-          Active ({activePlayers.length})
+          <span className="hidden @sm:inline">Active</span>
+          <span>({activePlayers.length})</span>
         </TabsTrigger>
         <TabsTrigger
           onClick={() => {
@@ -71,7 +74,8 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="break"
         >
           <AlarmClockMinus />
-          On Break ({breakPlayers.length})
+          <span className="hidden @sm:inline">On Break</span>
+          <span>({breakPlayers.length})</span>
         </TabsTrigger>
         <TabsTrigger
           onClick={() => {
@@ -81,7 +85,8 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           value="left"
         >
           <DoorOpenIcon />
-          Left ({leftPlayers.length})
+          <span className="hidden @sm:inline">Left</span>
+          <span>({leftPlayers.length})</span>
         </TabsTrigger>
       </TabsList>
       {isPending ? (
@@ -91,7 +96,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
       ) : (
         <React.Fragment>
           <TabsContent value="active">
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 @sm:grid-cols-2 gap-2">
               {activePlayers.map((v) => {
                 if (!v.player_id?.id) return <></>;
                 return (
@@ -103,6 +108,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
                     description={v.player_id.description}
                     type="Active"
                     logs={v.logs}
+                    disabled={disabled}
                     onClickChangeState={onClickChangeState}
                   />
                 );
@@ -110,7 +116,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
             </div>
           </TabsContent>
           <TabsContent value="break">
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 @sm:grid-cols-2 gap-2">
               {breakPlayers.map((v) => {
                 if (!v.player_id?.id) return <></>;
                 return (
@@ -122,6 +128,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
                     description={v.player_id.description}
                     type="On Break"
                     logs={v.logs}
+                    disabled={disabled}
                     onClickChangeState={onClickChangeState}
                   />
                 );
@@ -129,7 +136,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
             </div>
           </TabsContent>
           <TabsContent value="left">
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 @sm:grid-cols-2 gap-2">
               {leftPlayers.map((v) => {
                 if (!v.player_id?.id) return <></>;
                 return (
@@ -141,6 +148,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
                     description={v.player_id.description}
                     type="Left"
                     logs={v.logs}
+                    disabled={disabled}
                     onClickChangeState={onClickChangeState}
                   />
                 );

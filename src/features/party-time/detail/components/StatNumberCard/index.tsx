@@ -11,13 +11,13 @@ export interface StatNumberCardProps {
 const StatNumberCard: FC<StatNumberCardProps> = (props) => {
   const { variant, title, total } = props;
   return (
-    <Card className="py-3">
+    <Card className="py-3 shadow-none">
       <CardContent
         className={cn(
           ``,
           !variant || variant === "default" || "",
           variant === "secondary" && "text-secondary-foreground",
-          variant === "success" && "text-green-700",
+          variant === "success" && "text-primary",
           variant === "destructive" && "text-destructive"
         )}
       >

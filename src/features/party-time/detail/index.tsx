@@ -1,11 +1,10 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import SearchInput from "@/components/ui/search-input";
 import { Separator } from "@/components/ui/separator";
@@ -241,70 +240,149 @@ const PartyTimeDetail = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
-        <Activity mode={isPending || !data ? "visible" : "hidden"}>
-          <Spinner />
-        </Activity>
-        <Activity mode={!isPending && data ? "visible" : "hidden"}>
-          <div>
-            <Link to={`/app/party-time`}>
-              <Button className="p-0!" variant="link">
-                <ArrowLeft />
-                Back
-              </Button>
-            </Link>
-            <h2 className="text-2xl font-bold">{data?.name}</h2>
-            <p>{data?.description}</p>
-          </div>
-          <div className="flex flex-col w-full lg:w-auto justify-end">
-            <div className="flex gap-2 items-center justify-end">
-              <Clock size={20} />
-              <div className="text-xl font-bold text-right ">
-                <TimeSessionText logs={data?.logs || []} />
-              </div>
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel defaultSize={40}>
+          <ScrollArea className="h-dvh p-5 @container">
+            <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
+              <Activity mode={isPending || !data ? "visible" : "hidden"}>
+                <Spinner />
+              </Activity>
+              <Activity mode={!isPending && data ? "visible" : "hidden"}>
+                <div>
+                  <Link to={`/app/party-time`}>
+                    <Button className="p-0!" variant="link">
+                      <ArrowLeft />
+                      Back
+                    </Button>
+                  </Link>
+                  <h2 className="text-2xl font-bold">{data?.name}</h2>
+                  <p>{data?.description}</p>
+                </div>
+                <div className="flex flex-col w-full @lg:w-auto justify-end">
+                  <div className="flex gap-2 items-center justify-end">
+                    <Clock size={20} />
+                    <div className="text-xl font-bold text-right ">
+                      <TimeSessionText logs={data?.logs || []} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    {data?.state === "Stopped" && data?.logs && (
+                      <p>
+                        Stopped At{" "}
+                        {moment(
+                          data.logs[data.logs.length - 1].timeStamp
+                        ).format("DD MMM YYYY HH:mm")}
+                      </p>
+                    )}
+                    {data?.state !== "Stopped" && (
+                      <>
+                        {data?.state === "Paused" && (
+                          <Button
+                            loading={
+                              isPendingSessionMutation ||
+                              isPendingPlayerMutation
+                            }
+                            disabled={
+                              isPendingSessionMutation ||
+                              isPendingPlayerMutation
+                            }
+                            onClick={handleStart}
+                          >
+                            <PlayIcon />
+                            <span className="hidden @sm:inline">Start</span>
+                          </Button>
+                        )}
+                        {data?.state === "Active" && (
+                          <Button
+                            loading={
+                              isPendingSessionMutation ||
+                              isPendingPlayerMutation
+                            }
+                            disabled={
+                              isPendingSessionMutation ||
+                              isPendingPlayerMutation
+                            }
+                            onClick={handlePause}
+                            variant="secondary"
+                          >
+                            <PauseIcon />
+                            <span className="hidden @sm:inline">Pause</span>
+                          </Button>
+                        )}
+                        <Button
+                          loading={
+                            isPendingSessionMutation || isPendingPlayerMutation
+                          }
+                          disabled={
+                            isPendingSessionMutation || isPendingPlayerMutation
+                          }
+                          onClick={handleStop}
+                          variant="destructive"
+                        >
+                          <StopCircle />
+                          <span className="hidden @sm:inline">Stop</span>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Activity>
             </div>
-            <div className="flex gap-2 justify-end">
-              {data?.state === "Stopped" && data?.logs && (
-                <p>
-                  Stopped At{" "}
-                  {moment(data.logs[data.logs.length - 1].timeStamp).format(
-                    "DD MMM YYYY HH:mm"
-                  )}
-                </p>
-              )}
-              {data?.state !== "Stopped" && (
-                <>
-                  {data?.state === "Paused" && (
-                    <Button
-                      loading={isPendingSessionMutation}
-                      disabled={isPendingSessionMutation}
-                      onClick={handleStart}
-                      variant="ghost"
-                    >
-                      <PlayIcon />
-                      <span className="hidden sm:inline">Start</span>
-                    </Button>
-                  )}
-                  {data?.state === "Active" && (
-                    <Button
-                      loading={isPendingSessionMutation}
-                      disabled={isPendingSessionMutation}
-                      onClick={handlePause}
-                      variant="ghost"
-                    >
-                      <PauseIcon />
-                      <span className="hidden sm:inline">Pause</span>
-                    </Button>
-                  )}
-                  <Button
-                    loading={isPendingSessionMutation}
-                    disabled={isPendingSessionMutation}
-                    onClick={handleStop}
-                    variant="destructive"
-                  >
-                    <StopCircle />
-                    <span className="hidden sm:inline">Stop</span>
-                  </Button>
+            <Separator />
+            <h3 className="flex gap-2 mt-5">
+              <ChartCandlestick /> Statistics
+            </h3>
+            <div className="grid grid-cols-1 @sm:grid-cols-2 @md:grid-cols-4 gap-2 mt-4">
+              <StatNumberCard
+                title="Total Player"
+                total={playerSessionParty.length}
+              />
+
+              <StatNumberCard
+                variant="success"
+                title="Active"
+                total={activePlayers.length}
+              />
+
+              <StatNumberCard
+                variant="secondary"
+                title="On Break"
+                total={breakPlayers.length}
+              />
+
+              <StatNumberCard
+                variant="destructive"
+                title="Left"
+                total={leftPlayers.length}
+              />
+            </div>
+            <h3 className="flex gap-2 mt-5">
+              <ActivitySquare /> Activity Logs
+            </h3>
+            <Card className="w-full h-full py-3 my-3 ">
+              <CardContent className="pb-6">
+                <ScrollArea className="w-full h-full mt-3">
+                  {activityLogs?.map((log) => {
+                    return <LogText key={log.id} log={log} />;
+                  })}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={60}>
+          <ScrollArea className="h-dvh p-5 @container">
+            <div className="flex flex-wrap gap-3">
+              <div className="w-full">
+                <div className="flex gap-4 mt-4">
+                  <SearchInput
+                    inputProps={{
+                      placeholder: "Search player ....",
+                      value: search,
+                      onChange: (e) => setSearch(e.target.value),
+                    }}
+                  />
                   <Button
                     loading={isPendingSessionMutation}
                     disabled={isPendingSessionMutation}
@@ -313,88 +391,25 @@ const PartyTimeDetail = () => {
                     className="cursor-pointer"
                   >
                     <Plus />{" "}
-                    <span className="hidden sm:inline">Add Player</span>
+                    <span className="hidden @sm:inline">Add Player</span>
                   </Button>
-                </>
-              )}
+                </div>
+                <SessionTabs
+                  disabled={data?.state !== "Active"}
+                  defaultActive={data?.state !== "Stopped" ? "active" : "left"}
+                  loading={isPendingPlayerMutation}
+                  activePlayers={activePlayers}
+                  breakPlayers={breakPlayers}
+                  leftPlayers={leftPlayers}
+                  onClickChangeState={handleClickChangePlayerState}
+                />
+              </div>
             </div>
-          </div>
-        </Activity>
-      </div>
-      <Accordion type="multiple">
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="mt-1 p-2 rounded-lg cursor-pointer pt-3">
-            <span className="flex gap-2">
-              <ChartCandlestick /> Statistics
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-2 gap-2">
-              <StatNumberCard
-                title="Total Player"
-                total={playerSessionParty.length}
-              />
-              <StatNumberCard
-                variant="success"
-                title="Active"
-                total={activePlayers.length}
-              />
-              <StatNumberCard
-                variant="secondary"
-                title="On Break"
-                total={breakPlayers.length}
-              />
-              <StatNumberCard
-                variant="destructive"
-                title="Left"
-                total={leftPlayers.length}
-              />
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger className="mt-1 p-2 rounded-lg cursor-pointer pt-3">
-            <span className="flex gap-2">
-              <ActivitySquare /> Activity Logs
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Card className="w-full py-3 my-3 ">
-              <CardContent className="pb-6">
-                <h3 className="font-bold p-0 m-0!">Activity Logs</h3>
-                <Separator className="mt-2" />
-                <ScrollArea className="w-full h-[100px] mt-3">
-                  {activityLogs?.map((log) => {
-                    return <LogText key={log.id} log={log} />;
-                  })}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          </ScrollArea>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
       <Separator />
-      <div className="flex flex-wrap gap-3">
-        <div className="w-full">
-          <div className="flex gap-4 mt-4">
-            <SearchInput
-              inputProps={{
-                placeholder: "Search player ....",
-                value: search,
-                onChange: (e) => setSearch(e.target.value),
-              }}
-            />
-          </div>
-          <SessionTabs
-            defaultActive={data?.state !== "Stopped" ? "active" : "left"}
-            loading={isPendingPlayerMutation}
-            activePlayers={activePlayers}
-            breakPlayers={breakPlayers}
-            leftPlayers={leftPlayers}
-            onClickChangeState={handleClickChangePlayerState}
-          />
-        </div>
-      </div>
     </div>
   );
 };
