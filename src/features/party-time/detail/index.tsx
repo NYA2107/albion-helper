@@ -6,16 +6,14 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import SearchInput from "@/components/ui/search-input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { startClock, stopClock } from "@/hooks/useClock";
+import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
 import { useModalStore } from "@/store";
+import { useDebounce } from "@uidotdev/usehooks";
 import {
   ActivitySquare,
   ArrowLeft,
@@ -24,71 +22,47 @@ import {
   PauseIcon,
   PlayIcon,
   Plus,
-  Search,
   StopCircle,
 } from "lucide-react";
-import React, { Activity, useEffect, useMemo, useState } from "react";
+import moment from "moment";
+import { Activity, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import useGetPlayerSessionQuery from "../hooks/useGetPlayerSessionQuery";
 import useGetSessionByIdQuery from "../hooks/useGetSessionByIdQuery";
-import { LogText, StatNumberCard, TimeSessionText } from "./components";
-import SessionTabs from "./components/SessionTabs";
+import useUpdateSessionMutation from "../hooks/useUpdateSessionMutation";
+import useUpsertPlayerSessionMutation from "../hooks/useUpsertPlayerSessionMutation";
 import type {
   PlayerLogsType,
   PlayerSessionFormType,
   PlayerSessionType,
   SessionLogsType,
 } from "../schema";
-import moment from "moment";
-import useUpdateSessionMutation from "../hooks/useUpdateSessionMutation";
-import useUpsertPlayerSessionMutation from "../hooks/useUpsertPlayerSessionMutation";
-
-// export interface PlayerSessionParty {
-//   id: number;
-//   name: string;
-//   description: string;
-//   state: "Active" | "On Break" | "Left";
-//   logs: PlayerLogsType[];
-// }
-
-// const generateDummyPlayer = (): PlayerSessionParty[] => {
-//   return new Array(20).fill({}).map(() => {
-//     return {
-//       id: Math.random(),
-//       name: "Tisu Paseo",
-//       description: "This is description of the player",
-//       state:
-//         Math.random() <= 0.2
-//           ? "Active"
-//           : Math.random() <= 0.6
-//             ? "On Break"
-//             : "Left",
-//       logs: [
-//         {
-//           state: "Paused",
-//           timeStamp: 1764566114971,
-//         },
-//         {
-//           state: "Active",
-//           timeStamp: 1764566122964,
-//         },
-//       ],
-//     };
-//   });
-// };
+import { LogText, StatNumberCard, TimeSessionText } from "./components";
+import SessionTabs from "./components/SessionTabs";
+import buildChangeStatePlayerPayload from "./lib/buildChangeStatePlayerPayload";
+import buildChangeStateSessionPayload from "./lib/buildChangeStateSessionPayload";
+import getPlayerDataById from "./lib/getPlayerDataById";
 
 const PartyTimeDetail = () => {
-  // const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
   const { id: sessionId } = useParams();
   const { openModal } = useModalStore();
+  const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search, 500);
   const [playerSessionParty, setPlayerSessionParty] = useState<
     PlayerSessionType[]
   >([]);
+  const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
   const { data, isPending } = useGetSessionByIdQuery(parseInt(sessionId!));
-  const { data: player } = useGetPlayerSessionQuery(parseInt(sessionId!));
-  const { mutate: updateSessionMutation } = useUpdateSessionMutation();
-  const { mutate: upsertPlayerSessionMutation } =
-    useUpsertPlayerSessionMutation();
+  const { data: player } = useGetPlayerSessionQuery(
+    parseInt(sessionId!),
+    debouncedSearch
+  );
+  const { mutate: updateSessionMutation, isPending: isPendingSessionMutation } =
+    useUpdateSessionMutation();
+  const {
+    mutate: upsertPlayerSessionMutation,
+    isPending: isPendingPlayerMutation,
+  } = useUpsertPlayerSessionMutation(mutationModalDefaultBehavior);
 
   useEffect(() => {
     if (!player) return;
@@ -111,10 +85,42 @@ const PartyTimeDetail = () => {
     [playerSessionParty]
   );
 
+  const activityLogs = useMemo(() => {
+    const dataCopy = [
+      ...[],
+      ...(data?.logs?.map((v) => ({ ...{}, ...v })) || []),
+    ];
+    if (!dataCopy) return [];
+    return dataCopy?.sort((a, b) => b.timeStamp - a.timeStamp);
+  }, [data?.logs]);
+
   useEffect(() => {
     startClock();
     return () => stopClock();
   }, []);
+
+  const handlePause = () => {
+    const timeStampNow = moment().valueOf();
+    const payloadPlayerSession: PlayerSessionFormType[] =
+      buildChangeStatePlayerPayload(
+        parseInt(sessionId!),
+        activePlayers,
+        "Paused",
+        timeStampNow
+      );
+
+    const payloadSession = buildChangeStateSessionPayload(
+      parseInt(sessionId!),
+      data,
+      "Paused",
+      timeStampNow
+    );
+    upsertPlayerSessionMutation(payloadPlayerSession, {
+      onSuccess: () => {
+        updateSessionMutation(payloadSession);
+      },
+    });
+  };
 
   const handleClickAddPlayer = () => {
     openModal<"add.player">(
@@ -149,7 +155,6 @@ const PartyTimeDetail = () => {
             };
           });
         upsertPlayerSessionMutation(payloadPlayerSession);
-        console.log(payloadPlayerSession);
       }
     );
   };
@@ -175,7 +180,6 @@ const PartyTimeDetail = () => {
           const payload: Partial<PlayerSessionFormType[]> = [];
           activePlayers.map((v) => {
             if (!v.player_id?.id) return v;
-
             const addedLog: PlayerLogsType = {
               state: "Active",
               timeStamp: timeStampNow,
@@ -194,9 +198,50 @@ const PartyTimeDetail = () => {
     );
   };
 
+  const handleStop = () => {
+    const timeStampNow = moment().valueOf();
+    const payloadSession = buildChangeStateSessionPayload(
+      parseInt(sessionId!),
+      data,
+      "Stopped",
+      timeStampNow
+    );
+    updateSessionMutation(payloadSession, {
+      onSuccess: () => {
+        const players = [...activePlayers, ...breakPlayers];
+        const payloadPlayers = buildChangeStatePlayerPayload(
+          parseInt(sessionId!),
+          players,
+          "Left",
+          timeStampNow
+        );
+        upsertPlayerSessionMutation(payloadPlayers);
+      },
+    });
+  };
+
+  const handleClickChangePlayerState = (
+    id: number,
+    state: PlayerLogsType["state"]
+  ) => {
+    const timeStampNow = moment().valueOf();
+    const player: PlayerSessionType | undefined = getPlayerDataById(
+      id,
+      playerSessionParty
+    );
+    if (!player) return;
+    const playerPayload = buildChangeStatePlayerPayload(
+      parseInt(sessionId!),
+      [player],
+      state,
+      timeStampNow
+    );
+    upsertPlayerSessionMutation(playerPayload);
+  };
+
   return (
     <div>
-      <div className="flex justify-between items-center gap-3 mb-3 flex-wrap">
+      <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
         <Activity mode={isPending || !data ? "visible" : "hidden"}>
           <Spinner />
         </Activity>
@@ -211,7 +256,7 @@ const PartyTimeDetail = () => {
             <h2 className="text-2xl font-bold">{data?.name}</h2>
             <p>{data?.description}</p>
           </div>
-          <div className="justify-end w-full lg:w-auto">
+          <div className="flex flex-col w-full lg:w-auto justify-end">
             <div className="flex gap-2 items-center justify-end">
               <Clock size={20} />
               <div className="text-xl font-bold text-right ">
@@ -219,25 +264,50 @@ const PartyTimeDetail = () => {
               </div>
             </div>
             <div className="flex gap-2 justify-end">
+              {data?.state === "Stopped" && data?.logs && (
+                <p>
+                  Stopped At{" "}
+                  {moment(data.logs[data.logs.length - 1].timeStamp).format(
+                    "DD MMM YYYY HH:mm"
+                  )}
+                </p>
+              )}
               {data?.state !== "Stopped" && (
                 <>
                   {data?.state === "Paused" && (
-                    <Button onClick={handleStart} variant="ghost">
+                    <Button
+                      loading={isPendingSessionMutation}
+                      disabled={isPendingSessionMutation}
+                      onClick={handleStart}
+                      variant="ghost"
+                    >
                       <PlayIcon />
                       <span className="hidden sm:inline">Start</span>
                     </Button>
                   )}
                   {data?.state === "Active" && (
-                    <Button variant="ghost">
+                    <Button
+                      loading={isPendingSessionMutation}
+                      disabled={isPendingSessionMutation}
+                      onClick={handlePause}
+                      variant="ghost"
+                    >
                       <PauseIcon />
                       <span className="hidden sm:inline">Pause</span>
                     </Button>
                   )}
-                  <Button variant="destructive">
+                  <Button
+                    loading={isPendingSessionMutation}
+                    disabled={isPendingSessionMutation}
+                    onClick={handleStop}
+                    variant="destructive"
+                  >
                     <StopCircle />
                     <span className="hidden sm:inline">Stop</span>
                   </Button>
                   <Button
+                    loading={isPendingSessionMutation}
+                    disabled={isPendingSessionMutation}
                     onClick={handleClickAddPlayer}
                     variant="default"
                     className="cursor-pointer"
@@ -260,10 +330,25 @@ const PartyTimeDetail = () => {
           </AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-2 gap-2">
-              <StatNumberCard title="Total Player" total={3} />
-              <StatNumberCard variant="success" title="Active" total={2} />
-              <StatNumberCard variant="secondary" title="On Break" total={2} />
-              <StatNumberCard variant="destructive" title="Left" total={2} />
+              <StatNumberCard
+                title="Total Player"
+                total={playerSessionParty.length}
+              />
+              <StatNumberCard
+                variant="success"
+                title="Active"
+                total={activePlayers.length}
+              />
+              <StatNumberCard
+                variant="secondary"
+                title="On Break"
+                total={breakPlayers.length}
+              />
+              <StatNumberCard
+                variant="destructive"
+                title="Left"
+                total={leftPlayers.length}
+              />
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -279,7 +364,7 @@ const PartyTimeDetail = () => {
                 <h3 className="font-bold p-0 m-0!">Activity Logs</h3>
                 <Separator className="mt-2" />
                 <ScrollArea className="w-full h-[100px] mt-3">
-                  {data?.logs?.map((log) => {
+                  {activityLogs?.map((log) => {
                     return <LogText key={log.id} log={log} />;
                   })}
                 </ScrollArea>
@@ -292,17 +377,21 @@ const PartyTimeDetail = () => {
       <div className="flex flex-wrap gap-3">
         <div className="w-full">
           <div className="flex gap-4 mt-4">
-            <InputGroup className="rounded-xl">
-              <InputGroupInput placeholder="Search player..." />
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-            </InputGroup>
+            <SearchInput
+              inputProps={{
+                placeholder: "Search player ....",
+                value: search,
+                onChange: (e) => setSearch(e.target.value),
+              }}
+            />
           </div>
           <SessionTabs
+            defaultActive={data?.state !== "Stopped" ? "active" : "left"}
+            loading={isPendingPlayerMutation}
             activePlayers={activePlayers}
             breakPlayers={breakPlayers}
             leftPlayers={leftPlayers}
+            onClickChangeState={handleClickChangePlayerState}
           />
         </div>
       </div>

@@ -9,14 +9,24 @@ import type { PlayerLogsType } from "@/features/party-time/schema";
 
 export interface PlayerSessionCardProps {
   type: "Active" | "On Break" | "Left";
-  id?: number;
+  id: number;
   logs?: PlayerLogsType[];
   name?: string;
   description?: string;
+  onClickChangeState?: (id: number, state: PlayerLogsType["state"]) => void;
+  loading?: boolean;
 }
 
 const PlayerSessionCard: FC<PlayerSessionCardProps> = (props) => {
-  const { type, logs = [], name, description } = props;
+  const {
+    id,
+    type,
+    logs = [],
+    name,
+    description,
+    onClickChangeState,
+    loading,
+  } = props;
 
   return (
     <Card
@@ -52,13 +62,21 @@ const PlayerSessionCard: FC<PlayerSessionCardProps> = (props) => {
           {type === "Active" && (
             <>
               <Button
+                loading={loading}
+                disabled={loading}
+                onClick={() => onClickChangeState?.(id, "On Break")}
                 variant="secondary"
                 className="hover:text-secondary hover:bg-secondary-foreground"
               >
                 <AlarmClockMinus />
                 Break
               </Button>
-              <Button variant="destructive-ghost">
+              <Button
+                loading={loading}
+                disabled={loading}
+                onClick={() => onClickChangeState?.(id, "Left")}
+                variant="destructive-ghost"
+              >
                 <DoorOpen />
                 Leave
               </Button>
@@ -67,13 +85,21 @@ const PlayerSessionCard: FC<PlayerSessionCardProps> = (props) => {
           {type === "On Break" && (
             <>
               <Button
+                loading={loading}
+                disabled={loading}
+                onClick={() => onClickChangeState?.(id, "Active")}
                 variant="secondary"
                 className="bg-green-600 text-accent hover:text-green-800 dark:bg-transparent dark:text-primary-foreground dark:hover:bg-green-600 dark:hover:text-green-50"
               >
                 <Zap />
                 Set to Active
               </Button>
-              <Button variant="destructive-ghost">
+              <Button
+                loading={loading}
+                disabled={loading}
+                onClick={() => onClickChangeState?.(id, "Left")}
+                variant="destructive-ghost"
+              >
                 <DoorOpen />
                 Leave
               </Button>

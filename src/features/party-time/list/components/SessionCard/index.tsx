@@ -1,12 +1,12 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import BadgeState from "@/features/party-time/components/BadgeState";
 import { CalculatorIcon, EyeIcon } from "lucide-react";
 import moment from "moment";
+import type { FC } from "react";
 import { Link } from "react-router";
 import type { PartySessionType } from "../../../schema";
-import type { FC } from "react";
 
 type SessionCardPropsType = {
   id: number;
@@ -30,7 +30,7 @@ const SessionCard: FC<SessionCardPropsType> = (props) => {
             </div>
 
             <div className="flex flex-row sm:flex-col items-center sm:items-end mt-3 sm:mt-0 gap-2 sm:gap-0">
-              <Badge variant="secondary">{state}</Badge>
+              <BadgeState state={state || "Active"} />
               <p className="text-sm mt-0 sm:mt-3 text-left sm:text-right">
                 Created at {moment(createdAt).format("DD MMM YYYY")}
               </p>

@@ -1,3 +1,4 @@
+import BadgeState from "@/features/party-time/components/BadgeState";
 import type { SessionLogsType } from "@/features/party-time/schema";
 import { cn } from "@/lib/utils";
 import moment from "moment";
@@ -21,12 +22,10 @@ const LogText: FC<LogTextProps> = (props) => {
           {log.name}{" "}
         </span>{" "}
         <span>is set to </span>
-        <span className="text-secondary-foreground font-bold">
-          {log.state}{" "}
-        </span>
+        <BadgeState state={log.state} />
       </span>
       <span className={cn("text-secondary-foreground")}>
-        {moment(log.timeStamp).format("DD/MM/YYYY HH:mm:s")}
+        {moment(log.timeStamp).format("DD/MM/YY HH:mm:s")}
       </span>
     </p>
   );

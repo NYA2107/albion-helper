@@ -6,6 +6,7 @@ import type { PlayerSessionType } from "../schema";
 
 export interface GetPlayerSession {
   party_session_id: number;
+  search?: string;
 }
 
 export type GetPlayerSessionOptionsProps = UseQueryOptions<
@@ -15,22 +16,25 @@ export type GetPlayerSessionOptionsProps = UseQueryOptions<
 >;
 
 export const getPlayerSessionOptions = (
-  { party_session_id }: GetPlayerSession,
+  { party_session_id, search }: GetPlayerSession,
   props?: GetPlayerSessionOptionsProps
 ) => {
   return queryOptions({
     ...DEFAULT_QUERY_OPTIONS,
     ...props,
-    queryKey: ["player-sessions", party_session_id],
+    queryKey: ["player-sessions", party_session_id, search],
     queryFn: async ({ queryKey }) => {
       const sessionId = queryKey[1];
-      const response = await supabase
+      let query = supabase
         .from("Party_Session_Player")
         .select(
           "player_id:Player(*), party_session_id, logs, created_at, state"
         )
         .eq("party_session_id", sessionId);
-
+      if (search) {
+        query = query.ilike("player_id.name", `%${search}%`);
+      }
+      const response = await query;
       if (response.error) {
         throw response.error;
       }

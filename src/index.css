@@ -188,3 +188,16 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+.shadow-button-primary {
+  --tw-shadow: 0 4px 0 0 hsl(var(--shadow-primary));
+  --tw-shadow-colored: 0 4px 0 0 var(--tw-shadow-color);
+}
+
+.shadow-button-primary, .shadow-button-secondary {
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.ring-offset-background {
+  --tw-ring-offset-color: hsl(var(--background));
+}

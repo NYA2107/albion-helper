@@ -28,6 +28,7 @@ export const getPartySessionOptions = (
       let query = supabase
         .from("Party_Session")
         .select("id, name, description, created_at, state")
+        .order("created_at", { ascending: false })
         .eq("user_id", userId);
       if (search) {
         query = query.ilike("name", `%${search}%`);
