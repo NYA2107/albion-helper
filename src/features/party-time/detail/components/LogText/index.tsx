@@ -1,14 +1,31 @@
+import BadgeState from "@/features/party-time/components/BadgeState";
+import type { SessionLogsType } from "@/features/party-time/schema";
+import { cn } from "@/lib/utils";
 import moment from "moment";
+import type { FC } from "react";
 
-const LogText = () => {
+type LogTextProps = {
+  log: SessionLogsType;
+};
+
+const LogText: FC<LogTextProps> = (props) => {
+  const { log } = props;
   return (
     <p className="flex justify-between px-2 py-1 gap-2">
       <span>
-        <span className="font-bold">Tisu Paseo </span> <span>is set to </span>
-        <span className="text-secondary-foreground font-bold">Active </span>
+        <span
+          className={cn(
+            "font-bold",
+            log.type === "Session" && "text-accent-foreground"
+          )}
+        >
+          {log.name}{" "}
+        </span>{" "}
+        <span>is set to </span>
+        <BadgeState state={log.state} />
       </span>
-      <span className="text-accent-foreground">
-        {moment().format("DD/MM/YYYY HH:mm:s")}
+      <span className={cn("text-secondary-foreground")}>
+        {moment(log.timeStamp).format("DD/MM/YY HH:mm:s")}
       </span>
     </p>
   );

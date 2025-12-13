@@ -7,15 +7,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import SearchInput from "@/components/ui/search-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useModalStore } from "@/store/modal";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Cat, DatabaseIcon, Plus, Search } from "lucide-react";
+import { Cat, DatabaseIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import PlayerCard from "../../components/shared/PlayerCard";
 import usePlayerPageQuery from "./hooks/usePlayerPageQuery";
@@ -28,7 +24,7 @@ const Player = () => {
   const { openModal, setLoadingModal } = useModalStore();
 
   const handleClickEdit = (id: number) => {
-    openModal("edit.player", { id }, async (data) => {
+    openModal<"edit.player">("edit.player", { id }, async (data) => {
       if (!data) return;
       updateMutation.mutate(data);
       setLoadingModal(true);
@@ -36,7 +32,7 @@ const Player = () => {
   };
 
   const handleClickCreate = () => {
-    openModal("create.player", undefined, async (data) => {
+    openModal<"create.player">("create.player", undefined, async (data) => {
       if (!data) return;
       createMutation.mutate(data);
       setLoadingModal(true);
@@ -63,18 +59,13 @@ const Player = () => {
         </div>
       </div>
       <div className="flex gap-4 mt-4">
-        <InputGroup className="rounded-xl">
-          <InputGroupInput
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search..."
-          />
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupAddon align="inline-end">
-            {players?.length} results
-          </InputGroupAddon>
-        </InputGroup>
+        <SearchInput
+          inputProps={{
+            placeholder: "Search players...",
+            onChange: (e) => handleSearch(e.target.value),
+          }}
+          totalResults={players?.length}
+        />
         <Button onClick={handleClickCreate} className="cursor-pointer">
           <Plus /> <span className="hidden sm:inline">Create Player</span>
         </Button>

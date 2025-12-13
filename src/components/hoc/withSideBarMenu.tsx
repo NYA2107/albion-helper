@@ -7,7 +7,6 @@ const withSidebarMenu = <T extends object>(
   menu: MenuIdEnum
 ) => {
   const WithMenuIdComponent: FC<T> = (props: T) => {
-    console.log("MASHOK");
     useUpdateMenuId(MenuIdEnum[menu]);
     return <Component {...props} />;
   };

@@ -1,3 +1,4 @@
+import PlayerCard from "@/components/shared/PlayerCard";
 import {
   Accordion,
   AccordionContent,
@@ -30,9 +31,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
-import PlayerCard from "@/components/shared/PlayerCard";
+import useGetPlayerSessionQuery from "@/features/party-time/hooks/useGetPlayerSessionQuery";
 import useCreatePlayerMutation from "@/features/players/hooks/useCreatePlayerMutation";
 import useGetPlayerQuery from "@/features/players/hooks/useGetPlayerQuery";
+import type { PlayerResponseItemType } from "@/features/players/schema";
 import { useDebounce } from "@uidotdev/usehooks";
 import {
   CircleQuestionMark,
@@ -41,11 +43,13 @@ import {
   Search,
   XIcon,
 } from "lucide-react";
-import { useCallback, useState, type FC } from "react";
+import moment from "moment";
+import { useCallback, useMemo, useState, type FC } from "react";
 type ModalAddPlayerProps = {
+  sessionId?: number;
   loading?: boolean;
   onClose?: () => void;
-  onSubmit?: (payload: undefined) => void;
+  onSubmit?: (payload: number[]) => void;
 };
 
 type SelectedPlayerType = {
@@ -54,16 +58,30 @@ type SelectedPlayerType = {
 };
 
 const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
-  const { loading, onClose } = props;
+  const { loading, onClose, sessionId, onSubmit } = props;
   const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayerType[]>(
     []
   );
   const [search, setSearch] = useState<string>("");
   const debouncedSearch = useDebounce(search, 500);
   const { data: players, isPending } = useGetPlayerQuery(debouncedSearch);
+  const { data: playerInSession } = useGetPlayerSessionQuery(sessionId!);
   const [isConfirmCreate, setIsConfirmCreate] = useState<boolean>(false);
   const { mutate: createMutation, isPending: isPendingCreate } =
     useCreatePlayerMutation();
+
+  const filteredPlayers = useMemo(() => {
+    let playerResult: PlayerResponseItemType[] = [];
+    players?.map((v) => {
+      if (
+        playerInSession &&
+        playerInSession.filter((o) => o.player_id.id === v.id).length > 0
+      )
+        return v;
+      playerResult = [...playerResult, ...[v]];
+    });
+    return playerResult;
+  }, [players, playerInSession]);
 
   const handleClose = (open: boolean) => {
     if (open || !onClose) return;
@@ -86,6 +104,12 @@ const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
     createMutation({ name: search });
     setIsConfirmCreate(false);
   };
+
+  const handleSubmitPlayers = () => {
+    onSubmit?.(selectedPlayer.map((v) => v.id));
+  };
+
+  console.log(moment().valueOf());
 
   return (
     <Dialog open={true} onOpenChange={handleClose}>
@@ -188,7 +212,7 @@ const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              {players && players?.length <= 0 && (
+              {filteredPlayers && filteredPlayers?.length <= 0 && (
                 <Empty>
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
@@ -207,7 +231,7 @@ const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
-                  {players?.map((pl) => (
+                  {filteredPlayers?.map((pl) => (
                     <div
                       key={pl.id}
                       className="grid grid-cols-[auto_1fr] gap-2 pr-3"
@@ -251,8 +275,7 @@ const ModalAddPlayer: FC<ModalAddPlayerProps> = (props) => {
             <Button
               loading={loading}
               disabled={loading}
-              form="form-create-player"
-              type="submit"
+              onClick={handleSubmitPlayers}
             >
               Add Player
             </Button>

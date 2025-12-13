@@ -1,8 +1,8 @@
 import { memo, useMemo, type FC } from "react";
-import type { PlayerLogsType } from "../..";
 import useClock from "@/hooks/useClock";
 import getElapsedTime from "../../lib/getElapsedTime";
 import getFormattedTime from "@/lib/getFormattedTime";
+import type { PlayerLogsType } from "@/features/party-time/schema";
 
 const TimerPlayerSessionText: FC<{ logs: PlayerLogsType[] }> = (props) => {
   const { logs } = props;

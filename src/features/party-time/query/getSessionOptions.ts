@@ -1,24 +1,23 @@
-
 import { supabase } from "@/api/supabase";
 import type { PostgrestError, Session } from "@supabase/supabase-js";
 import { queryOptions, type UseQueryOptions } from "@tanstack/react-query";
-import type { PartySessionType } from "../list/schema";
+import type { PartySessionType } from "../schema";
 import { DEFAULT_QUERY_OPTIONS } from "@/constants/query";
 
 export interface GetPartySession {
   search?: string;
-  session:Session
+  session: Session;
 }
 
 export type GetPartySessionProps = UseQueryOptions<
-    PartySessionType[],
+  PartySessionType[],
   PostgrestError,
   PartySessionType[]
 >;
 
 export const getPartySessionOptions = (
-    { search, session }: GetPartySession,
-    props?: GetPartySessionProps
+  { search, session }: GetPartySession,
+  props?: GetPartySessionProps
 ) => {
   return queryOptions({
     ...DEFAULT_QUERY_OPTIONS,
@@ -29,6 +28,7 @@ export const getPartySessionOptions = (
       let query = supabase
         .from("Party_Session")
         .select("id, name, description, created_at, state")
+        .order("created_at", { ascending: false })
         .eq("user_id", userId);
       if (search) {
         query = query.ilike("name", `%${search}%`);

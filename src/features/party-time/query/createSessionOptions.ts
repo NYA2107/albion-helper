@@ -2,11 +2,12 @@ import { supabase } from "@/api/supabase";
 import { queryClient } from "@/constants/query";
 import type { PostgrestError, Session } from "@supabase/supabase-js";
 import {
-    mutationOptions,
-    type UseMutationOptions,
+  mutationOptions,
+  type UseMutationOptions,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { PartySessionType } from "../list/schema";
+import type { PartySessionType } from "../schema";
+import moment from "moment";
 
 export type CreateSessionOptionsProps = UseMutationOptions<
   number,
@@ -15,8 +16,8 @@ export type CreateSessionOptionsProps = UseMutationOptions<
 >;
 
 export const createSessionOptions = (
-    session:Session,
-    props: CreateSessionOptionsProps
+  session: Session,
+  props: CreateSessionOptionsProps
 ) => {
   const { onSuccess: onSuccessCallback, onError: onErrorCallback } = props;
   return mutationOptions<number, PostgrestError, PartySessionType>({
@@ -24,19 +25,27 @@ export const createSessionOptions = (
     mutationFn: async (payload) => {
       const responseSession = await supabase
         .from("Party_Session")
-        .insert({
-            user_id:session?.user?.id,
-            name:payload.name,
-            description:payload.description,
-            state:"Paused",
-            logs:[]
+        .insert<PartySessionType>({
+          user_id: session?.user?.id,
+          name: payload.name,
+          description: payload.description,
+          state: "Paused",
+          logs: [
+            {
+              id: 1,
+              name: "Session",
+              type: "Session",
+              state: "Paused",
+              timeStamp: moment().valueOf(),
+            },
+          ],
         })
         .select("id")
         .single();
       if (responseSession.error || !responseSession.data.id) {
         throw responseSession.error || new Error("Failed to create session");
       }
-      return responseSession.data.id
+      return responseSession.data.id;
     },
     onSuccess: async (id, ...rest) => {
       await queryClient.invalidateQueries({ queryKey: ["party-sessions"] });

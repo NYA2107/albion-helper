@@ -68,7 +68,7 @@ const Sidebar = () => {
       <Button
         disabled={mutation.isPending}
         onClick={handleLogout}
-        variant="destructive-ghost"
+        variant="destructive"
       >
         <div
           className={cn(

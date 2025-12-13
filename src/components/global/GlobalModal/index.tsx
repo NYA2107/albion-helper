@@ -51,8 +51,12 @@ const GlobalModal = () => {
     case "add.player": {
       return (
         <WrapperModal<"add.player">>
-          {({ onClose, onSubmit }) => (
-            <ModalAddPlayer onClose={onClose} onSubmit={onSubmit} />
+          {({ onClose, onSubmit, modalData }) => (
+            <ModalAddPlayer
+              sessionId={modalData?.sessionId}
+              onClose={onClose}
+              onSubmit={onSubmit}
+            />
           )}
         </WrapperModal>
       );

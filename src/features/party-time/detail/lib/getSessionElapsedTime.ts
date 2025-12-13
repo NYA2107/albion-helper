@@ -1,4 +1,4 @@
-import type { SessionLogsType } from "../../list/schema";
+import type { SessionLogsType } from "../../schema";
 
 const getSessionElapsedTime = (logs: SessionLogsType[], now: number) => {
   let elapsedTime = 0;
@@ -6,11 +6,11 @@ const getSessionElapsedTime = (logs: SessionLogsType[], now: number) => {
   const sessionLogs = logs.filter((v) => v.type === "Session");
   if (logs.length <= 1) return 0;
   for (let i = 0; i < sessionLogs.length - 1; i++) {
-    if (i === 0 && sessionLogs[i].state !== "Active") continue;
+    if (i === 0 && sessionLogs[0].state !== "Active") continue;
     if (sessionLogs[i].state === "Active") {
       timeStampActive = sessionLogs[i].timeStamp;
     } else if (sessionLogs[i].state === "Paused") {
-      elapsedTime = sessionLogs[i].timeStamp - timeStampActive;
+      elapsedTime = elapsedTime + (sessionLogs[i].timeStamp - timeStampActive);
     }
   }
   if (sessionLogs[sessionLogs.length - 1].state === "Active") {
@@ -20,10 +20,12 @@ const getSessionElapsedTime = (logs: SessionLogsType[], now: number) => {
     sessionLogs[sessionLogs.length - 1].state === "Paused" ||
     sessionLogs[sessionLogs.length - 1].state === "Stopped"
   ) {
-    elapsedTime =
-      sessionLogs[sessionLogs.length - 1].timeStamp -
-      timeStampActive +
-      elapsedTime;
+    if (sessionLogs[sessionLogs.length - 2].state === "Active") {
+      elapsedTime =
+        sessionLogs[sessionLogs.length - 1].timeStamp -
+        timeStampActive +
+        elapsedTime;
+    }
   }
 
   return elapsedTime;

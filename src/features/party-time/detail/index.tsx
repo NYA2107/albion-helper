@@ -6,106 +6,74 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import SearchInput from "@/components/ui/search-input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { startClock, stopClock } from "@/hooks/useClock";
+import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
 import { useModalStore } from "@/store";
+import { useDebounce } from "@uidotdev/usehooks";
 import {
   ActivitySquare,
   ArrowLeft,
   ChartCandlestick,
   Clock,
+  PauseIcon,
   PlayIcon,
   Plus,
-  Search,
   StopCircle,
 } from "lucide-react";
+import moment from "moment";
 import { Activity, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
+import useGetPlayerSessionQuery from "../hooks/useGetPlayerSessionQuery";
 import useGetSessionByIdQuery from "../hooks/useGetSessionByIdQuery";
-import type { PartySessionType } from "../list/schema";
+import useUpdateSessionMutation from "../hooks/useUpdateSessionMutation";
+import useUpsertPlayerSessionMutation from "../hooks/useUpsertPlayerSessionMutation";
+import type {
+  PlayerLogsType,
+  PlayerSessionFormType,
+  PlayerSessionType,
+  SessionLogsType,
+} from "../schema";
 import { LogText, StatNumberCard, TimeSessionText } from "./components";
 import SessionTabs from "./components/SessionTabs";
-
-export interface PlayerLogsType {
-  state: "Active" | "On Break" | "Left" | "Paused";
-  timeStamp: number;
-}
-
-export interface PlayerSessionParty {
-  id: number;
-  name: string;
-  description: string;
-  state: "Active" | "On Break" | "Left";
-  logs: PlayerLogsType[];
-}
-
-const dummySession: PartySessionType = {
-  id: 1,
-  name: "Session Name",
-  state: "Active",
-  logs: [
-    {
-      id: 1,
-      name: "Session",
-      type: "Session",
-      state: "Paused",
-      timeStamp: 1764579029704,
-    },
-    {
-      id: 2,
-      name: "Session",
-      type: "Session",
-      state: "Active",
-      timeStamp: 1764579029800,
-    },
-  ],
-};
-
-const generateDummyPlayer = (): PlayerSessionParty[] => {
-  return new Array(1000).fill({}).map(() => {
-    return {
-      id: Math.random(),
-      name: "Tisu Paseo",
-      description: "This is description of the player",
-      state:
-        Math.random() <= 0.2
-          ? "Active"
-          : Math.random() <= 0.6
-          ? "On Break"
-          : "Left",
-      logs: [
-        {
-          state: "Paused",
-          timeStamp: 1764566114971,
-        },
-        {
-          state: "Active",
-          timeStamp: 1764566122964,
-        },
-      ],
-    };
-  });
-};
+import buildChangeStatePlayerPayload from "./lib/buildChangeStatePlayerPayload";
+import buildChangeStateSessionPayload from "./lib/buildChangeStateSessionPayload";
+import getPlayerDataById from "./lib/getPlayerDataById";
 
 const PartyTimeDetail = () => {
-  const dummyPlayerSessionParty: PlayerSessionParty[] = generateDummyPlayer();
-  const { id:sessionId } = useParams();
+  const { id: sessionId } = useParams();
   const { openModal } = useModalStore();
-  const [session] = useState<PartySessionType>(dummySession);
-  const [playerSessionParty] = useState<PlayerSessionParty[]>(
-    dummyPlayerSessionParty
+  const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search, 500);
+  const [playerSessionParty, setPlayerSessionParty] = useState<
+    PlayerSessionType[]
+  >([]);
+  const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
+  const { data, isPending } = useGetSessionByIdQuery(parseInt(sessionId!));
+  const { data: player } = useGetPlayerSessionQuery(
+    parseInt(sessionId!),
+    debouncedSearch
   );
-  const {data, isPending} = useGetSessionByIdQuery(parseInt(sessionId!))
+  const { mutate: updateSessionMutation, isPending: isPendingSessionMutation } =
+    useUpdateSessionMutation();
+  const {
+    mutate: upsertPlayerSessionMutation,
+    isPending: isPendingPlayerMutation,
+  } = useUpsertPlayerSessionMutation(mutationModalDefaultBehavior);
+
+  useEffect(() => {
+    if (!player) return;
+    setPlayerSessionParty(player);
+  }, [player]);
 
   const activePlayers = useMemo(
-    () => playerSessionParty.filter((player) => player.state === "Active"),
+    () =>
+      playerSessionParty.filter(
+        (player) => player.state === "Active" || player.state === "Paused"
+      ),
     [playerSessionParty]
   );
   const breakPlayers = useMemo(
@@ -117,23 +85,167 @@ const PartyTimeDetail = () => {
     [playerSessionParty]
   );
 
+  const activityLogs = useMemo(() => {
+    const dataCopy = [
+      ...[],
+      ...(data?.logs?.map((v) => ({ ...{}, ...v })) || []),
+    ];
+    if (!dataCopy) return [];
+    return dataCopy?.sort((a, b) => b.timeStamp - a.timeStamp);
+  }, [data?.logs]);
+
   useEffect(() => {
     startClock();
     return () => stopClock();
   }, []);
 
-  const handleClickAddPlayer = () => {
-    openModal("add.player");
+  const handlePause = () => {
+    const timeStampNow = moment().valueOf();
+    const payloadPlayerSession: PlayerSessionFormType[] =
+      buildChangeStatePlayerPayload(
+        parseInt(sessionId!),
+        activePlayers,
+        "Paused",
+        timeStampNow
+      );
+
+    const payloadSession = buildChangeStateSessionPayload(
+      parseInt(sessionId!),
+      data,
+      "Paused",
+      timeStampNow
+    );
+    upsertPlayerSessionMutation(payloadPlayerSession, {
+      onSuccess: () => {
+        updateSessionMutation(payloadSession);
+      },
+    });
   };
-  
+
+  const handleClickAddPlayer = () => {
+    openModal<"add.player">(
+      "add.player",
+      { sessionId: parseInt(sessionId!) },
+      (selectedPlayer) => {
+        const payloadPlayerSession: PlayerSessionFormType[] =
+          selectedPlayer.map((playerId) => {
+            const logs: PlayerLogsType[] =
+              data?.state === "Active"
+                ? [
+                    {
+                      state: "Paused",
+                      timeStamp: moment().valueOf(),
+                    },
+                    {
+                      state: "Active",
+                      timeStamp: moment().valueOf(),
+                    },
+                  ]
+                : [
+                    {
+                      state: "Paused",
+                      timeStamp: moment().valueOf(),
+                    },
+                  ];
+            return {
+              player_id: playerId,
+              logs: logs,
+              state: data?.state === "Active" ? "Active" : "Paused",
+              party_session_id: parseInt(sessionId!),
+            };
+          });
+        upsertPlayerSessionMutation(payloadPlayerSession);
+      }
+    );
+  };
+
+  const handleStart = () => {
+    if (!data?.logs) return;
+    const timeStampNow = moment().valueOf();
+    const payloadSessionLog: SessionLogsType = {
+      id: Math.random(),
+      name: "Session",
+      type: "Session",
+      state: "Active",
+      timeStamp: timeStampNow,
+    };
+    updateSessionMutation(
+      {
+        id: parseInt(sessionId!),
+        logs: [...data.logs, ...[payloadSessionLog]],
+        state: "Active",
+      },
+      {
+        onSuccess: () => {
+          const payload: Partial<PlayerSessionFormType[]> = [];
+          activePlayers.map((v) => {
+            if (!v.player_id?.id) return v;
+            const addedLog: PlayerLogsType = {
+              state: "Active",
+              timeStamp: timeStampNow,
+            };
+            payload.push({
+              player_id: v.player_id.id,
+              party_session_id: parseInt(sessionId!),
+              state: "Active",
+              logs: [...v.logs, ...[addedLog]],
+            });
+            return v;
+          });
+          upsertPlayerSessionMutation(payload);
+        },
+      }
+    );
+  };
+
+  const handleStop = () => {
+    const timeStampNow = moment().valueOf();
+    const payloadSession = buildChangeStateSessionPayload(
+      parseInt(sessionId!),
+      data,
+      "Stopped",
+      timeStampNow
+    );
+    updateSessionMutation(payloadSession, {
+      onSuccess: () => {
+        const players = [...activePlayers, ...breakPlayers];
+        const payloadPlayers = buildChangeStatePlayerPayload(
+          parseInt(sessionId!),
+          players,
+          "Left",
+          timeStampNow
+        );
+        upsertPlayerSessionMutation(payloadPlayers);
+      },
+    });
+  };
+
+  const handleClickChangePlayerState = (
+    id: number,
+    state: PlayerLogsType["state"]
+  ) => {
+    const timeStampNow = moment().valueOf();
+    const player: PlayerSessionType | undefined = getPlayerDataById(
+      id,
+      playerSessionParty
+    );
+    if (!player) return;
+    const playerPayload = buildChangeStatePlayerPayload(
+      parseInt(sessionId!),
+      [player],
+      state,
+      timeStampNow
+    );
+    upsertPlayerSessionMutation(playerPayload);
+  };
+
   return (
     <div>
-      <div className="flex justify-between items-center gap-3 mb-3 flex-wrap">
-        {(isPending || !data) && <Spinner />}
-        <Activity mode={(isPending || !data)?"visible":"hidden" }>
+      <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
+        <Activity mode={isPending || !data ? "visible" : "hidden"}>
           <Spinner />
         </Activity>
-        <Activity mode={(!isPending && data)?"visible":"hidden"}>
+        <Activity mode={!isPending && data ? "visible" : "hidden"}>
           <div>
             <Link to={`/app/party-time`}>
               <Button className="p-0!" variant="link">
@@ -144,29 +256,67 @@ const PartyTimeDetail = () => {
             <h2 className="text-2xl font-bold">{data?.name}</h2>
             <p>{data?.description}</p>
           </div>
-          <div className="justify-end w-full lg:w-auto">
+          <div className="flex flex-col w-full lg:w-auto justify-end">
             <div className="flex gap-2 items-center justify-end">
               <Clock size={20} />
               <div className="text-xl font-bold text-right ">
-                <TimeSessionText logs={session.logs || []} />
+                <TimeSessionText logs={data?.logs || []} />
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="ghost">
-                <PlayIcon />
-                <span className="hidden sm:inline">Start</span>
-              </Button>
-              <Button variant="destructive-ghost">
-                <StopCircle />
-                <span className="hidden sm:inline">Stop</span>
-              </Button>
-              <Button
-                onClick={handleClickAddPlayer}
-                variant="default"
-                className="cursor-pointer"
-              >
-                <Plus /> <span className="hidden sm:inline">Add Player</span>
-              </Button>
+              {data?.state === "Stopped" && data?.logs && (
+                <p>
+                  Stopped At{" "}
+                  {moment(data.logs[data.logs.length - 1].timeStamp).format(
+                    "DD MMM YYYY HH:mm"
+                  )}
+                </p>
+              )}
+              {data?.state !== "Stopped" && (
+                <>
+                  {data?.state === "Paused" && (
+                    <Button
+                      loading={isPendingSessionMutation}
+                      disabled={isPendingSessionMutation}
+                      onClick={handleStart}
+                      variant="ghost"
+                    >
+                      <PlayIcon />
+                      <span className="hidden sm:inline">Start</span>
+                    </Button>
+                  )}
+                  {data?.state === "Active" && (
+                    <Button
+                      loading={isPendingSessionMutation}
+                      disabled={isPendingSessionMutation}
+                      onClick={handlePause}
+                      variant="ghost"
+                    >
+                      <PauseIcon />
+                      <span className="hidden sm:inline">Pause</span>
+                    </Button>
+                  )}
+                  <Button
+                    loading={isPendingSessionMutation}
+                    disabled={isPendingSessionMutation}
+                    onClick={handleStop}
+                    variant="destructive"
+                  >
+                    <StopCircle />
+                    <span className="hidden sm:inline">Stop</span>
+                  </Button>
+                  <Button
+                    loading={isPendingSessionMutation}
+                    disabled={isPendingSessionMutation}
+                    onClick={handleClickAddPlayer}
+                    variant="default"
+                    className="cursor-pointer"
+                  >
+                    <Plus />{" "}
+                    <span className="hidden sm:inline">Add Player</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </Activity>
@@ -180,10 +330,25 @@ const PartyTimeDetail = () => {
           </AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-2 gap-2">
-              <StatNumberCard title="Total Player" total={3} />
-              <StatNumberCard variant="success" title="Active" total={2} />
-              <StatNumberCard variant="secondary" title="On Break" total={2} />
-              <StatNumberCard variant="destructive" title="Left" total={2} />
+              <StatNumberCard
+                title="Total Player"
+                total={playerSessionParty.length}
+              />
+              <StatNumberCard
+                variant="success"
+                title="Active"
+                total={activePlayers.length}
+              />
+              <StatNumberCard
+                variant="secondary"
+                title="On Break"
+                total={breakPlayers.length}
+              />
+              <StatNumberCard
+                variant="destructive"
+                title="Left"
+                total={leftPlayers.length}
+              />
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -199,7 +364,9 @@ const PartyTimeDetail = () => {
                 <h3 className="font-bold p-0 m-0!">Activity Logs</h3>
                 <Separator className="mt-2" />
                 <ScrollArea className="w-full h-[100px] mt-3">
-                  <LogText />
+                  {activityLogs?.map((log) => {
+                    return <LogText key={log.id} log={log} />;
+                  })}
                 </ScrollArea>
               </CardContent>
             </Card>
@@ -210,20 +377,21 @@ const PartyTimeDetail = () => {
       <div className="flex flex-wrap gap-3">
         <div className="w-full">
           <div className="flex gap-4 mt-4">
-            <InputGroup className="rounded-xl">
-              <InputGroupInput
-                onChange={() => {}}
-                placeholder="Search player..."
-              />
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-            </InputGroup>
+            <SearchInput
+              inputProps={{
+                placeholder: "Search player ....",
+                value: search,
+                onChange: (e) => setSearch(e.target.value),
+              }}
+            />
           </div>
           <SessionTabs
+            defaultActive={data?.state !== "Stopped" ? "active" : "left"}
+            loading={isPendingPlayerMutation}
             activePlayers={activePlayers}
             breakPlayers={breakPlayers}
             leftPlayers={leftPlayers}
+            onClickChangeState={handleClickChangePlayerState}
           />
         </div>
       </div>
