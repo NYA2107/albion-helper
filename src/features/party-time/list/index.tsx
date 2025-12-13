@@ -10,6 +10,7 @@ import { useNavigate } from "react-router";
 import useCreateSessionMutation from "../hooks/useCreateSessionMutation";
 import useGetSessionQuery from "../hooks/useGetSessionQuery";
 import SessionCard from "./components/SessionCard";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PartyTimeList = () => {
   const { openModal } = useModalStore();
@@ -39,7 +40,7 @@ const PartyTimeList = () => {
   };
 
   return (
-    <div>
+    <ScrollArea className="p-5 h-dvh">
       <div>
         <div className="flex items-center gap-5">
           <Component size={50} />
@@ -80,7 +81,7 @@ const PartyTimeList = () => {
           })}
         </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 };
 

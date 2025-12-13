@@ -15,6 +15,7 @@ import { Cat, DatabaseIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import PlayerCard from "../../components/shared/PlayerCard";
 import usePlayerPageQuery from "./hooks/usePlayerPageQuery";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Player = () => {
   const [search, setSearch] = useState<string>("");
@@ -50,7 +51,7 @@ const Player = () => {
   };
 
   return (
-    <div>
+    <ScrollArea className="p-5 h-dvh">
       <div className="flex items-center gap-5">
         <Cat size={50} />
         <div>
@@ -104,7 +105,7 @@ const Player = () => {
           ))}
         </div>
       )}
-    </div>
+    </ScrollArea>
   );
 };
 

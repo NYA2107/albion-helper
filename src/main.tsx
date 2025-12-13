@@ -10,14 +10,13 @@ import useAuthStateChange from "./hooks/useAuthStateChange.ts";
 import "./index.css";
 import router from "./routes/index.tsx";
 
-
 export const App = () => {
   useAuthStateChange();
 
   return (
     <React.Fragment>
       <QueryClientProvider client={queryClient}>
-        <Toaster position="top-center" />
+        <Toaster position="top-right" />
         <RouterProvider router={router} />
         <ModeToggle />
       </QueryClientProvider>
