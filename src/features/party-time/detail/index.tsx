@@ -8,7 +8,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import SearchInput from "@/components/ui/search-input";
 import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
 import { startClock, stopClock } from "@/hooks/useClock";
 import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
 import { useModalStore } from "@/store";
@@ -38,6 +37,7 @@ import type {
 } from "../schema";
 import { LogText, StatNumberCard, TimeSessionText } from "./components";
 import SessionTabs from "./components/SessionTabs";
+import SkeletonDetail from "./components/SkeletonDetail";
 import buildChangeStatePlayerPayload from "./lib/buildChangeStatePlayerPayload";
 import buildChangeStateSessionPayload from "./lib/buildChangeStateSessionPayload";
 import getPlayerDataById from "./lib/getPlayerDataById";
@@ -52,10 +52,8 @@ const PartyTimeDetail = () => {
   >([]);
   const mutationModalDefaultBehavior = useModalMutationDefaultBehavior();
   const { data, isPending } = useGetSessionByIdQuery(parseInt(sessionId!));
-  const { data: player } = useGetPlayerSessionQuery(
-    parseInt(sessionId!),
-    debouncedSearch
-  );
+  const { data: player, isPending: isPendingPlayerQuery } =
+    useGetPlayerSessionQuery(parseInt(sessionId!), debouncedSearch);
   const { mutate: updateSessionMutation, isPending: isPendingSessionMutation } =
     useUpdateSessionMutation();
   const {
@@ -243,11 +241,11 @@ const PartyTimeDetail = () => {
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={40}>
           <ScrollArea className="h-dvh p-5 @container">
-            <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
-              <Activity mode={isPending || !data ? "visible" : "hidden"}>
-                <Spinner />
-              </Activity>
-              <Activity mode={!isPending && data ? "visible" : "hidden"}>
+            <Activity mode={isPending || !data ? "visible" : "hidden"}>
+              <SkeletonDetail />
+            </Activity>
+            <Activity mode={!isPending && data ? "visible" : "hidden"}>
+              <div className="flex justify-between items-end gap-3 mb-3 flex-wrap">
                 <div>
                   <Link to={`/app/party-time`}>
                     <Button className="p-0!" variant="link">
@@ -326,48 +324,48 @@ const PartyTimeDetail = () => {
                     )}
                   </div>
                 </div>
-              </Activity>
-            </div>
-            <Separator />
-            <h3 className="flex gap-2 mt-5">
-              <ChartCandlestick /> Statistics
-            </h3>
-            <div className="grid grid-cols-1 @sm:grid-cols-2 @md:grid-cols-4 gap-2 mt-4">
-              <StatNumberCard
-                title="Total Player"
-                total={playerSessionParty.length}
-              />
+              </div>
+              <Separator />
+              <h3 className="flex gap-2 mt-5">
+                <ChartCandlestick /> Statistics
+              </h3>
+              <div className="grid grid-cols-1 @sm:grid-cols-2 @md:grid-cols-4 gap-2 mt-4">
+                <StatNumberCard
+                  title="Total Player"
+                  total={playerSessionParty.length}
+                />
 
-              <StatNumberCard
-                variant="success"
-                title="Active"
-                total={activePlayers.length}
-              />
+                <StatNumberCard
+                  variant="success"
+                  title="Active"
+                  total={activePlayers.length}
+                />
 
-              <StatNumberCard
-                variant="secondary"
-                title="On Break"
-                total={breakPlayers.length}
-              />
+                <StatNumberCard
+                  variant="secondary"
+                  title="On Break"
+                  total={breakPlayers.length}
+                />
 
-              <StatNumberCard
-                variant="destructive"
-                title="Left"
-                total={leftPlayers.length}
-              />
-            </div>
-            <h3 className="flex gap-2 mt-5">
-              <ActivitySquare /> Activity Logs
-            </h3>
-            <Card className="w-full h-full py-3 my-3 ">
-              <CardContent className="pb-6">
-                <ScrollArea className="w-full h-full mt-3">
-                  {activityLogs?.map((log) => {
-                    return <LogText key={log.id} log={log} />;
-                  })}
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                <StatNumberCard
+                  variant="destructive"
+                  title="Left"
+                  total={leftPlayers.length}
+                />
+              </div>
+              <h3 className="flex gap-2 mt-5">
+                <ActivitySquare /> Activity Logs
+              </h3>
+              <Card className="w-full h-full py-3 my-3 ">
+                <CardContent className="pb-6">
+                  <ScrollArea className="w-full h-full mt-3">
+                    {activityLogs?.map((log) => {
+                      return <LogText key={log.id} log={log} />;
+                    })}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </Activity>
           </ScrollArea>
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -397,7 +395,9 @@ const PartyTimeDetail = () => {
                 <SessionTabs
                   disabled={data?.state !== "Active"}
                   defaultActive={data?.state !== "Stopped" ? "active" : "left"}
-                  loading={isPendingPlayerMutation}
+                  loading={
+                    isPendingPlayerMutation || isPending || isPendingPlayerQuery
+                  }
                   activePlayers={activePlayers}
                   breakPlayers={breakPlayers}
                   leftPlayers={leftPlayers}
