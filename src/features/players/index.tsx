@@ -7,15 +7,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import SearchInput from "@/components/ui/search-input";
-import { Spinner } from "@/components/ui/spinner";
 import { useModalStore } from "@/store/modal";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Cat, DatabaseIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import PlayerCard from "../../components/shared/PlayerCard";
 import usePlayerPageQuery from "./hooks/usePlayerPageQuery";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import SkeletonCardList from "@/components/shared/SkeletonCardList";
 
 const Player = () => {
   const [search, setSearch] = useState<string>("");
@@ -90,8 +90,8 @@ const Player = () => {
         </Empty>
       )}
       {isPending ? (
-        <div className="flex justify-center m-4">
-          <Spinner className="w-10 h-10" />
+        <div className="mt-3">
+          <SkeletonCardList total={4} totalColumn={3} />
         </div>
       ) : (
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">

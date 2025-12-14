@@ -1,18 +1,12 @@
+import SkeletonCardList from "@/components/shared/SkeletonCardList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlarmClockMinus, DoorOpenIcon, Zap } from "lucide-react";
-import React, {
-  memo,
-  useState,
-  useTransition,
-  type FC,
-  useEffect,
-} from "react";
-import PlayerSessionCard from "../PlayerSessionCard";
-import { Spinner } from "@/components/ui/spinner";
 import type {
   PlayerLogsType,
   PlayerSessionType,
 } from "@/features/party-time/schema";
+import { AlarmClockMinus, DoorOpenIcon, Zap } from "lucide-react";
+import React, { memo, useEffect, useState, type FC } from "react";
+import PlayerSessionCard from "../PlayerSessionCard";
 
 type SessionTabsProps = {
   activePlayers: PlayerSessionType[];
@@ -35,7 +29,6 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
     disabled,
   } = props;
   const [activeTab, setActiveTab] = useState<string>(defaultActive || "Active");
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (!defaultActive) return;
@@ -43,9 +36,7 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
   }, [defaultActive]);
 
   const handleChangeTab = (tabId: string) => {
-    startTransition(() => {
-      setActiveTab(tabId);
-    });
+    setActiveTab(tabId);
   };
 
   return (
@@ -89,9 +80,9 @@ const SessionTabs: FC<SessionTabsProps> = (props) => {
           <span>({leftPlayers.length})</span>
         </TabsTrigger>
       </TabsList>
-      {isPending ? (
-        <div className="flex justify-center">
-          <Spinner />
+      {loading ? (
+        <div className="mt-3">
+          <SkeletonCardList total={4} totalColumn={2} />
         </div>
       ) : (
         <React.Fragment>

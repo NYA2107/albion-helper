@@ -1,6 +1,7 @@
+import SkeletonCardList from "@/components/shared/SkeletonCardList";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import SearchInput from "@/components/ui/search-input";
-import { Spinner } from "@/components/ui/spinner";
 import useModalMutationDefaultBehavior from "@/hooks/useModalMutationDefaultBehavior";
 import { useModalStore } from "@/store";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -10,7 +11,6 @@ import { useNavigate } from "react-router";
 import useCreateSessionMutation from "../hooks/useCreateSessionMutation";
 import useGetSessionQuery from "../hooks/useGetSessionQuery";
 import SessionCard from "./components/SessionCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PartyTimeList = () => {
   const { openModal } = useModalStore();
@@ -62,11 +62,7 @@ const PartyTimeList = () => {
           </Button>
         </div>
         <div className="mt-3 flex flex-col gap-2">
-          {isPending && (
-            <div className="flex justify-center">
-              <Spinner />
-            </div>
-          )}
+          {isPending && <SkeletonCardList total={3} totalColumn={1} />}
           {data?.map((session) => {
             return (
               <SessionCard

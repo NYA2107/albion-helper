@@ -4,6 +4,7 @@ import { MenuIdEnum } from "@/layouts/AppLayout/components/Sidebar";
 import LoginLayout from "@/layouts/LoginLayout";
 import LoginPage from "@/pages/auth/login/LoginPage";
 import RegisterPage from "@/pages/auth/register/RegisterPage";
+import LootSplitDetailPage from "@/pages/loot-split/LootSplitDetailPage";
 import LootSplitListPage from "@/pages/loot-split/LootSplitListPage";
 import PartyTimeDetailPage from "@/pages/party-time/PartyTimeDetailPage";
 import PartyTimeListPage from "@/pages/party-time/PartyTimeListPage";
@@ -43,6 +44,13 @@ const router = createBrowserRouter([
         path: "loot-split",
         Component: withSidebarMenu(
           LootSplitListPage,
+          MenuIdEnum["menu-loot-split"]
+        ),
+      },
+      {
+        path: "loot-split/:id",
+        Component: withSidebarMenu(
+          LootSplitDetailPage,
           MenuIdEnum["menu-loot-split"]
         ),
       },
